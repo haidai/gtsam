@@ -110,6 +110,8 @@ void Gaussian::WhitenInPlace(Matrix& H) const {
 // General QR, see also special version in Constrained
 SharedDiagonal Gaussian::QR(Matrix& Ab) const {
 
+  gttic(Gaussian_noise_model_QR);
+
   static const bool debug = false;
 
   // get size(A) and maxRank
@@ -127,7 +129,7 @@ SharedDiagonal Gaussian::QR(Matrix& Ab) const {
 
   // hand-coded householder implementation
   // TODO: necessary to isolate last column?
-//  householder(Ab, maxRank);
+  // householder(Ab, maxRank);
 
   return Unit::Create(maxRank);
 }
@@ -159,9 +161,11 @@ void Gaussian::WhitenSystem(Matrix& A1, Matrix& A2, Matrix& A3, Vector& b) const
 // Diagonal
 /* ************************************************************************* */
 Diagonal::Diagonal() :
-    Gaussian(1), sigmas_(ones(1)), invsigmas_(ones(1)), precisions_(ones(1)) {
+    Gaussian(1)//, sigmas_(ones(1)), invsigmas_(ones(1)), precisions_(ones(1))
+{
 }
 
+/* ************************************************************************* */
 Diagonal::Diagonal(const Vector& sigmas) :
     Gaussian(sigmas.size()), sigmas_(sigmas), invsigmas_(reciprocal(sigmas)), precisions_(
         emul(invsigmas_, invsigmas_)) {
@@ -218,6 +222,31 @@ void Diagonal::WhitenInPlace(Matrix& H) const {
 /* ************************************************************************* */
 // Constrained
 /* ************************************************************************* */
+
+/* ************************************************************************* */
+Constrained::Constrained(const Vector& sigmas)
+  : Diagonal(sigmas), mu_(repeat(sigmas.size(), 1000.0)) {
+  for (int i=0; i<sigmas.size(); ++i) {
+    if (!std::isfinite(1./sigmas(i))) {
+      precisions_(i) = 0.0; // Set to finite value
+      invsigmas_(i) = 0.0;
+    }
+  }
+}
+
+/* ************************************************************************* */
+Constrained::Constrained(const Vector& mu, const Vector& sigmas)
+  : Diagonal(sigmas), mu_(mu) {
+//  assert(sigmas.size() == mu.size());
+  for (int i=0; i<sigmas.size(); ++i) {
+    if (!std::isfinite(1./sigmas(i))) {
+      precisions_(i) = 0.0; // Set to finite value
+      invsigmas_(i) = 0.0;
+    }
+  }
+}
+
+/* ************************************************************************* */
 Constrained::shared_ptr Constrained::MixedSigmas(const Vector& mu, const Vector& sigmas, bool smart) {
   // FIXME: can't return a diagonal shared_ptr due to conversion
 //  if (smart) {
@@ -257,19 +286,20 @@ Vector Constrained::whiten(const Vector& v) const {
 double Constrained::distance(const Vector& v) const {
   Vector w = Diagonal::whiten(v); // get noisemodel for constrained elements
   // TODO Find a better way of doing these checks
-  for (size_t i=0; i<dim_; ++i) { // add mu weights on constrained variables
-    if (isinf(w[i])) // whiten makes constrained variables infinite
+  for (size_t i=0; i<dim_; ++i)  // add mu weights on constrained variables
+    if (!std::isfinite(1./sigmas_[i])) // whiten makes constrained variables zero
       w[i] = v[i] * sqrt(mu_[i]); // TODO: may want to store sqrt rather than rebuild
-    if (isnan(w[i])) // ensure no other invalid values make it through
-      w[i] = v[i];
-  }
   return w.dot(w);
 }
 
 /* ************************************************************************* */
 Matrix Constrained::Whiten(const Matrix& H) const {
   // selective scaling
-  return vector_scale(invsigmas(), H, true);
+  // Now allow augmented Matrix with a new additional part coming
+  // from the Lagrange multiplier.
+  Matrix M(H.block(0, 0, dim(), H.cols()));
+  Constrained::WhitenInPlace(M);
+  return M;
 }
 
 /* ************************************************************************* */
@@ -596,6 +626,36 @@ Huber::shared_ptr Huber::Create(const double c, const ReweightScheme reweight) {
 }
 
 /* ************************************************************************* */
+// Cauchy
+/* ************************************************************************* */
+
+Cauchy::Cauchy(const double k, const ReweightScheme reweight)
+  : Base(reweight), k_(k) {
+  if ( k_ <= 0 ) {
+    cout << "mEstimator Cauchy takes only positive double in constructor. forced to 1.0" << endl;
+    k_ = 1.0;
+  }
+}
+
+double Cauchy::weight(const double &error) const {
+  return k_*k_ / (k_*k_ + error*error);
+}
+
+void Cauchy::print(const std::string &s="") const {
+  cout << s << "cauchy (" << k_ << ")" << endl;
+}
+
+bool Cauchy::equals(const Base &expected, const double tol) const {
+  const Cauchy* p = dynamic_cast<const Cauchy*>(&expected);
+  if (p == NULL) return false;
+  return fabs(k_ - p->k_) < tol;
+}
+
+Cauchy::shared_ptr Cauchy::Create(const double c, const ReweightScheme reweight) {
+  return shared_ptr(new Cauchy(c, reweight));
+}
+
+/* ************************************************************************* */
 // Tukey
 /* ************************************************************************* */
 Tukey::Tukey(const double c, const ReweightScheme reweight)
@@ -623,6 +683,32 @@ bool Tukey::equals(const Base &expected, const double tol) const {
 
 Tukey::shared_ptr Tukey::Create(const double c, const ReweightScheme reweight) {
   return shared_ptr(new Tukey(c, reweight));
+}
+
+/* ************************************************************************* */
+// Welsh
+/* ************************************************************************* */
+Welsh::Welsh(const double c, const ReweightScheme reweight)
+  : Base(reweight), c_(c) {
+}
+
+double Welsh::weight(const double &error) const {
+  double xc2 = (error/c_)*(error/c_);
+  return std::exp(-xc2);
+}
+
+void Welsh::print(const std::string &s="") const {
+  std::cout << s << ": Welsh (" << c_ << ")" << std::endl;
+}
+
+bool Welsh::equals(const Base &expected, const double tol) const {
+  const Welsh* p = dynamic_cast<const Welsh*>(&expected);
+  if (p == NULL) return false;
+  return fabs(c_ - p->c_) < tol;
+}
+
+Welsh::shared_ptr Welsh::Create(const double c, const ReweightScheme reweight) {
+  return shared_ptr(new Welsh(c, reweight));
 }
 
 } // namespace mEstimator
@@ -671,7 +757,6 @@ Robust::shared_ptr Robust::Create(
   const RobustModel::shared_ptr &robust, const NoiseModel::shared_ptr noise){
   return shared_ptr(new Robust(robust,noise));
 }
-
 
 /* ************************************************************************* */
 
