@@ -550,11 +550,35 @@ EliminatePreferCholesky(const GaussianFactorGraph& factors, const Ordering& keys
 {
   gttic(EliminatePreferCholesky);
 
+  // We'll decide whether to use QR or Cholesky
+  bool useQR = false;
+
   // If any JacobianFactors have constrained noise models, we have to convert
   // all factors to JacobianFactors.  Otherwise, we can convert all factors
   // to HessianFactors.  This is because QR can handle constrained noise
   // models but Cholesky cannot.
   if (hasConstraints(factors))
+    useQR = true;
+
+  // If the joint factor will have fewer rows than columns, use QR
+  size_t nMax = 0;
+  size_t rows = 0;
+  bool brokeForHessian = false;
+  BOOST_FOREACH(const GaussianFactor::shared_ptr& factor, factors) {
+    if(const JacobianFactor* jacobian = dynamic_cast<const JacobianFactor*>(factor.get())) {
+      if(jacobian->cols() > nMax)
+        nMax = jacobian->cols();
+      rows += jacobian->rows();
+    } else {
+      brokeForHessian = true;
+      break;
+    }
+  }
+
+  if(!brokeForHessian && rows < nMax)
+    useQR = true;
+
+  if(useQR)
     return EliminateQR(factors, keys);
   else
     return EliminateCholesky(factors, keys);
