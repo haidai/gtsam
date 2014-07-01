@@ -24,7 +24,7 @@ if ~exist('externallyConfigured', 'var')
   
   options.includeIMUFactors = 1;     % if true, IMU factors will be added between consecutive states (biases, poses, velocities)
   options.imuFactorType = 1;         % Set to 1 or 2 to use IMU type 1 or type 2 factors (will default to type 1)
-  options.imuNonzeroBias = 0;        % if true, a nonzero bias is applied to IMU measurements
+  options.imuNonzeroBias = 1;        % if true, a nonzero bias is applied to IMU measurements
   
   options.includeCameraFactors = 1;  % if true, SmartProjectionPose3Factors will be used with randomly generated landmarks
   options.numberOfLandmarks = 1000;  % Total number of visual landmarks (randomly generated in a box around the trajectory)
@@ -32,7 +32,7 @@ if ~exist('externallyConfigured', 'var')
   options.includeGPSFactors = 0;     % if true, GPS factors will be added as priors to poses
   options.gpsStartPose = 100;        % Pose number to start including GPS factors at
   
-  options.trajectoryLength = 100;%209;    % length of the ground truth trajectory
+  options.trajectoryLength = 5;%209;    % length of the ground truth trajectory
   options.subsampleStep = 20;        % number of poses to skip when using real data (to reduce computation on long trajectories)
   
   numMonteCarloRuns = 2;             % number of Monte Carlo runs to perform
@@ -42,10 +42,10 @@ if ~exist('externallyConfigured', 'var')
   sigma_cart = 1e-1;      % std. deviation for translational noise, typical 1e-1
   sigma_accel = 1e-3;     % std. deviation for accelerometer noise, typical 1e-3
   sigma_gyro = 1e-5;      % std. deviation for gyroscope noise, typical 1e-5
-  sigma_accelBias = 1e-4; % std. deviation for added accelerometer constant bias, typical 1e-3
-  sigma_gyroBias = 1e-6;  % std. deviation for added gyroscope constant bias, typical 1e-5
+  sigma_accelBias = 1e-3; % std. deviation for added accelerometer constant bias, typical 1e-3
+  sigma_gyroBias = 1e-5;  % std. deviation for added gyroscope constant bias, typical 1e-5
   sigma_gps = 1e-4;       % std. deviation for noise in GPS position measurements, typical 1e-4
-  sigma_camera = 1;  % std. deviation for noise in camera measurements (pixels)
+  sigma_camera = 1;       % std. deviation for noise in camera measurements (pixels), typical 1
   
   % Set log files
   testName = sprintf('sa-%1.2g-sc-%1.2g-sacc-%1.2g-sg-%1.2g',sigma_ang,sigma_cart,sigma_accel,sigma_gyro)
@@ -171,7 +171,6 @@ axis equal
 % optimize
 optimizer = GaussNewtonOptimizer(gtGraph, gtValues);
 gtEstimate = optimizer.optimize();
-plot3DTrajectory(gtEstimate, '-k');
 % estimate should match gtValues if graph is correct.
 fprintf('Error in ground truth graph at gtValues: %g \n', gtGraph.error(gtValues) );
 fprintf('Error in ground truth graph at gtEstimate: %g \n', gtGraph.error(gtEstimate) );
@@ -190,7 +189,7 @@ monteCarloNoiseModels.noiseGPS = noiseGPS;
 monteCarloNoiseModels.noiseCamera = cameraMeasurementNoise;
 
 % Set measurement noise for monte carlo runs
-monteCarloMeasurementNoise.poseNoiseVector = zeros(6,1); %noiseVectorPose;
+monteCarloMeasurementNoise.poseNoiseVector = noiseVectorPose;
 monteCarloMeasurementNoise.imu.accelNoiseVector = noiseVectorAccel;
 monteCarloMeasurementNoise.imu.gyroNoiseVector = noiseVectorGyro;
 monteCarloMeasurementNoise.gpsNoiseVector = noiseVectorGPS;
@@ -298,7 +297,7 @@ if saveResults
   saveas(gcf,horzcat(folderName,'ANEES-',testName,'.fig'),'fig');
   saveas(gcf,horzcat(folderName,'ANEES-',testName,'.png'),'png');
   logFile = horzcat(folderName,'log-',testName);
-  save(logFile)
+  save(logFile, 'options', 'metadata')
 end
 
 %% NEES COMPUTATION (Bar-Shalom 2001, Section 5.4)
