@@ -43,6 +43,47 @@ void ISAM2::Impl::AddVariables(
 }
 
 /* ************************************************************************* */
+void ISAM2::Impl::AddFactorsStep1(const NonlinearFactorGraph& newFactors, bool useUnusedSlots,
+  NonlinearFactorGraph& nonlinearFactors, FastVector<size_t>& newFactorIndices)
+{
+  newFactorIndices.resize(newFactors.size());
+
+  if(useUnusedSlots)
+  {
+    size_t globalFactorIndex = 0;
+    for(size_t newFactorIndex = 0; newFactorIndex < newFactors.size(); ++newFactorIndex)
+    {
+      // Loop to find the next available factor slot
+      do 
+      {
+        // If we need to add more factors than we have room for, resize nonlinearFactors,
+        // filling the new slots with NULL factors.  Otherwise, check if the current
+        // factor in nonlinearFactors is already used, and if so, increase
+        // globalFactorIndex.  If the current factor in nonlinearFactors is unused, break
+        // out of the loop and use the current slot.
+        if(globalFactorIndex >= nonlinearFactors.size())
+          nonlinearFactors.resize(nonlinearFactors.size() + newFactors.size() - newFactorIndex);
+        else if(nonlinearFactors[globalFactorIndex])
+          ++ globalFactorIndex;
+        else
+          break;
+      } while(true);
+
+      // Use the current slot, updating nonlinearFactors and newFactorSlots.
+      nonlinearFactors[globalFactorIndex] = newFactors[newFactorIndex];
+      newFactorIndices[newFactorIndex] = globalFactorIndex;
+    }
+  }
+  else
+  {
+    // We're not looking for unused slots, so just add the factors at the end.
+    for(size_t i = 0; i < newFactors.size(); ++i)
+      newFactorIndices[i] = i + nonlinearFactors.size();
+    nonlinearFactors.push_back(newFactors);
+  }
+}
+
+/* ************************************************************************* */
 void ISAM2::Impl::RemoveVariables(const FastSet<Key>& unusedKeys, const FastVector<ISAM2::sharedClique>& roots,
                                   Values& theta, VariableIndex& variableIndex,
                                   VectorValues& delta, VectorValues& deltaNewton, VectorValues& RgProd,
@@ -62,10 +103,10 @@ void ISAM2::Impl::RemoveVariables(const FastSet<Key>& unusedKeys, const FastVect
 }
 
 /* ************************************************************************* */
-FastSet<Index> ISAM2::Impl::CheckRelinearizationFull(const VectorValues& delta,
+FastSet<Key> ISAM2::Impl::CheckRelinearizationFull(const VectorValues& delta,
     const ISAM2Params::RelinearizationThreshold& relinearizeThreshold)
 {
-  FastSet<Index> relinKeys;
+  FastSet<Key> relinKeys;
 
   if(const double* threshold = boost::get<double>(&relinearizeThreshold))
   {
@@ -90,7 +131,7 @@ FastSet<Index> ISAM2::Impl::CheckRelinearizationFull(const VectorValues& delta,
 }
 
 /* ************************************************************************* */
-void CheckRelinearizationRecursiveDouble(FastSet<Index>& relinKeys, double threshold,
+void CheckRelinearizationRecursiveDouble(FastSet<Key>& relinKeys, double threshold,
                                          const VectorValues& delta, const ISAM2Clique::shared_ptr& clique)
 {
   // Check the current clique for relinearization
@@ -112,7 +153,7 @@ void CheckRelinearizationRecursiveDouble(FastSet<Index>& relinKeys, double thres
 }
 
 /* ************************************************************************* */
-void CheckRelinearizationRecursiveMap(FastSet<Index>& relinKeys, const FastMap<char,Vector>& thresholds,
+void CheckRelinearizationRecursiveMap(FastSet<Key>& relinKeys, const FastMap<char,Vector>& thresholds,
                                       const VectorValues& delta,
                                       const ISAM2Clique::shared_ptr& clique)
 {
@@ -144,11 +185,11 @@ void CheckRelinearizationRecursiveMap(FastSet<Index>& relinKeys, const FastMap<c
 }
 
 /* ************************************************************************* */
-FastSet<Index> ISAM2::Impl::CheckRelinearizationPartial(const FastVector<ISAM2::sharedClique>& roots,
+FastSet<Key> ISAM2::Impl::CheckRelinearizationPartial(const FastVector<ISAM2::sharedClique>& roots,
                                                         const VectorValues& delta,
                                                         const ISAM2Params::RelinearizationThreshold& relinearizeThreshold)
 {
-  FastSet<Index> relinKeys;
+  FastSet<Key> relinKeys;
   BOOST_FOREACH(const ISAM2::sharedClique& root, roots) {
     if(relinearizeThreshold.type() == typeid(double))
       CheckRelinearizationRecursiveDouble(relinKeys, boost::get<double>(relinearizeThreshold), delta, root);
@@ -159,7 +200,7 @@ FastSet<Index> ISAM2::Impl::CheckRelinearizationPartial(const FastVector<ISAM2::
 }
 
 /* ************************************************************************* */
-void ISAM2::Impl::FindAll(ISAM2Clique::shared_ptr clique, FastSet<Index>& keys, const FastSet<Key>& markedMask)
+void ISAM2::Impl::FindAll(ISAM2Clique::shared_ptr clique, FastSet<Key>& keys, const FastSet<Key>& markedMask)
 {
   static const bool debug = false;
   // does the separator contain any of the variables?
@@ -230,7 +271,8 @@ inline static void optimizeInPlace(const boost::shared_ptr<ISAM2Clique>& clique,
 }
 
 /* ************************************************************************* */
-size_t ISAM2::Impl::UpdateDelta(const FastVector<ISAM2::sharedClique>& roots, FastSet<Key>& replacedKeys, VectorValues& delta, double wildfireThreshold) {
+size_t ISAM2::Impl::UpdateGaussNewtonDelta(const FastVector<ISAM2::sharedClique>& roots,
+    const FastSet<Key>& replacedKeys, VectorValues& delta, double wildfireThreshold) {
 
   size_t lastBacksubVariableCount;
 
@@ -253,15 +295,12 @@ size_t ISAM2::Impl::UpdateDelta(const FastVector<ISAM2::sharedClique>& roots, Fa
 #endif
   }
 
-  // Clear replacedKeys
-  replacedKeys.clear();
-
   return lastBacksubVariableCount;
 }
 
 /* ************************************************************************* */
 namespace internal {
-void updateDoglegDeltas(const boost::shared_ptr<ISAM2Clique>& clique, const FastSet<Key>& replacedKeys,
+void updateRgProd(const boost::shared_ptr<ISAM2Clique>& clique, const FastSet<Key>& replacedKeys,
     const VectorValues& grad, VectorValues& RgProd, size_t& varsUpdated) {
 
   // Check if any frontal or separator keys were recalculated, if so, we need
@@ -299,30 +338,37 @@ void updateDoglegDeltas(const boost::shared_ptr<ISAM2Clique>& clique, const Fast
 
     // Recurse to children
     BOOST_FOREACH(const ISAM2Clique::shared_ptr& child, clique->children) {
-      updateDoglegDeltas(child, replacedKeys, grad, RgProd, varsUpdated); }
+      updateRgProd(child, replacedKeys, grad, RgProd, varsUpdated); }
   }
 }
 }
 
 /* ************************************************************************* */
-size_t ISAM2::Impl::UpdateDoglegDeltas(const ISAM2& isam, double wildfireThreshold, FastSet<Key>& replacedKeys,
-    VectorValues& deltaNewton, VectorValues& RgProd) {
-
-  // Get gradient
-  VectorValues grad;
-  gradientAtZero(isam, grad);
+size_t ISAM2::Impl::UpdateRgProd(const ISAM2::Roots& roots, const FastSet<Key>& replacedKeys,
+    const VectorValues& gradAtZero, VectorValues& RgProd) {
 
   // Update variables
   size_t varsUpdated = 0;
-  BOOST_FOREACH(const ISAM2::sharedClique& root, isam.roots())
-  {
-    internal::updateDoglegDeltas(root, replacedKeys, grad, RgProd, varsUpdated);
-    optimizeWildfireNonRecursive(root, wildfireThreshold, replacedKeys, deltaNewton);
+  BOOST_FOREACH(const ISAM2::sharedClique& root, roots) {
+    internal::updateRgProd(root, replacedKeys, gradAtZero, RgProd, varsUpdated);
   }
 
-  replacedKeys.clear();
-
   return varsUpdated;
+}
+  
+/* ************************************************************************* */
+VectorValues ISAM2::Impl::ComputeGradientSearch(const VectorValues& gradAtZero,
+                                     const VectorValues& RgProd)
+{
+  // Compute gradient squared-magnitude
+  const double gradientSqNorm = gradAtZero.dot(gradAtZero);
+  
+  // Compute minimizing step size
+  double RgNormSq = RgProd.vector().squaredNorm();
+  double step = -gradientSqNorm / RgNormSq;
+
+  // Compute steepest descent point
+  return step * gradAtZero;
 }
 
 }

@@ -72,14 +72,14 @@ namespace gtsam {
      * So f = 2 f(x),  g = -df(x), G = ddf(x)
      */
     static HessianFactor::shared_ptr linearize(double z, double u, double p,
-        Index j1, Index j2) {
+        Key j1, Key j2) {
       double e = u - z, e2 = e * e;
       double c = 2 * logSqrt2PI - log(p) + e2 * p;
-      Vector g1 = (Vec(1) << -e * p);
-      Vector g2 = (Vec(1) <<  0.5 / p - 0.5 * e2);
-      Matrix G11 = Matrix_(1, 1, p);
-      Matrix G12 = Matrix_(1, 1, e);
-      Matrix G22 = Matrix_(1, 1, 0.5 / (p * p));
+      Vector g1 = (Vector(1) << -e * p);
+      Vector g2 = (Vector(1) <<  0.5 / p - 0.5 * e2);
+      Matrix G11 = (Matrix(1, 1) << p);
+      Matrix G12 = (Matrix(1, 1) << e);
+      Matrix G22 = (Matrix(1, 1) << 0.5 / (p * p));
       return HessianFactor::shared_ptr(
           new HessianFactor(j1, j2, G11, G12, g1, G22, g2, c));
     }
@@ -137,7 +137,7 @@ namespace gtsam {
      * TODO: Where is this used? should disappear.
      */
     virtual Vector unwhitenedError(const Values& x) const {
-      return (Vec(1) << std::sqrt(2 * error(x)));
+      return (Vector(1) << std::sqrt(2 * error(x)));
     }
 
     /**
@@ -145,7 +145,7 @@ namespace gtsam {
      * variable indices.
      */
 //    virtual IndexFactor::shared_ptr symbolic(const Ordering& ordering) const {
-//      const Index j1 = ordering[meanKey_], j2 = ordering[precisionKey_];
+//      const Key j1 = ordering[meanKey_], j2 = ordering[precisionKey_];
 //      return IndexFactor::shared_ptr(new IndexFactor(j1, j2));
 //    }
 
@@ -157,8 +157,8 @@ namespace gtsam {
     virtual boost::shared_ptr<GaussianFactor> linearize(const Values& x) const {
       double u = x.at<LieScalar>(meanKey_);
       double p = x.at<LieScalar>(precisionKey_);
-      Index j1 = meanKey_;
-      Index j2 = precisionKey_;
+      Key j1 = meanKey_;
+      Key j2 = precisionKey_;
       return linearize(z_, u, p, j1, j2);
     }
 

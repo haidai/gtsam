@@ -41,21 +41,28 @@ namespace gtsam {
   GTSAM_EXPORT std::pair<boost::shared_ptr<GaussianConditional>, boost::shared_ptr<HessianFactor> >
     EliminateCholesky(const GaussianFactorGraph& factors, const Ordering& keys);
 
-  // Definition of Scatter, which is an intermediate data structure used when building a
-  // HessianFactor incrementally, to get the keys in the right order. The "scatter" is a map from
-  // global variable indices to slot indices in the union of involved variables.  We also include
-  // the dimensionality of the variable.
+  /**
+   * One SlotEntry stores the slot index for a variable, as well its dimension.
+   */
   struct GTSAM_EXPORT SlotEntry {
-    size_t slot;
-    size_t dimension;
+    size_t slot, dimension;
     SlotEntry(size_t _slot, size_t _dimension)
     : slot(_slot), dimension(_dimension) {}
     std::string toString() const;
   };
-  class Scatter : public FastMap<Key, SlotEntry> {
+
+  /**
+   * Scatter is an intermediate data structure used when building a HessianFactor
+   * incrementally, to get the keys in the right order. The "scatter" is a map from
+   * global variable indices to slot indices in the union of involved variables.
+   * We also include the dimensionality of the variable.
+   */
+  class Scatter: public FastMap<Key, SlotEntry> {
   public:
-    Scatter() {}
-    Scatter(const GaussianFactorGraph& gfg, boost::optional<const Ordering&> ordering = boost::none);
+    Scatter() {
+    }
+    Scatter(const GaussianFactorGraph& gfg,
+        boost::optional<const Ordering&> ordering = boost::none);
   };
 
   /**
@@ -134,6 +141,7 @@ namespace gtsam {
     typedef SymmetricBlockMatrix::Block Block; ///< A block from the Hessian matrix
     typedef SymmetricBlockMatrix::constBlock constBlock; ///< A block from the Hessian matrix (const version)
 
+
     /** default constructor for I/O */
     HessianFactor();
 
@@ -142,12 +150,12 @@ namespace gtsam {
      * error is:
      * 0.5*(f - 2*x'*g + x'*G*x)
      */
-    HessianFactor(Index j, const Matrix& G, const Vector& g, double f);
+    HessianFactor(Key j, const Matrix& G, const Vector& g, double f);
 
     /** Construct a unary factor, given a mean and covariance matrix.
      * error is 0.5*(x-mu)'*inv(Sigma)*(x-mu)
     */
-    HessianFactor(Index j, const Vector& mu, const Matrix& Sigma);
+    HessianFactor(Key j, const Vector& mu, const Matrix& Sigma);
 
     /** Construct a binary factor.  Gxx are the upper-triangle blocks of the
      * quadratic term (the Hessian matrix), gx the pieces of the linear vector
@@ -164,7 +172,7 @@ namespace gtsam {
        1*1    f =  b'*M*b
      \endcode
      */
-    HessianFactor(Index j1, Index j2,
+    HessianFactor(Key j1, Key j2,
         const Matrix& G11, const Matrix& G12, const Vector& g1,
         const Matrix& G22, const Vector& g2, double f);
 
@@ -172,7 +180,7 @@ namespace gtsam {
      * quadratic term (the Hessian matrix), gx the pieces of the linear vector
      * term, and f the constant term.
      */
-    HessianFactor(Index j1, Index j2, Index j3,
+    HessianFactor(Key j1, Key j2, Key j3,
         const Matrix& G11, const Matrix& G12, const Matrix& G13, const Vector& g1,
         const Matrix& G22, const Matrix& G23, const Vector& g2,
         const Matrix& G33, const Vector& g3, double f);
@@ -265,13 +273,13 @@ namespace gtsam {
      * as described above.  See HessianFactor class documentation above to explain that only the
      * upper-triangular part of the information matrix is stored and returned by this function.
      */
-    constBlock info() const { return info_.full(); }
+    SymmetricBlockMatrix::constBlock info() const { return info_.full(); }
 
     /** Return the <em>upper-triangular part</em> of the full *augmented* information matrix,
      * as described above.  See HessianFactor class documentation above to explain that only the
      * upper-triangular part of the information matrix is stored and returned by this function.
      */
-    Block info() { return info_.full(); }
+    SymmetricBlockMatrix::Block info() { return info_.full(); }
 
     /** Return the constant term \f$ f \f$ as described above
      * @return The constant term \f$ f \f$
@@ -287,21 +295,25 @@ namespace gtsam {
      * @param j Which block row to get, as an iterator pointing to the slot in this factor.  You can
      * use, for example, begin() + 2 to get the 3rd variable in this factor.
      * @return The linear term \f$ g \f$ */
-    constBlock::ColXpr linearTerm(const_iterator j) const { return info_(j-begin(), size()).col(0); }
+    constBlock::OffDiagonal::ColXpr linearTerm(const_iterator j) const {
+      return info_(j-begin(), size()).knownOffDiagonal().col(0); }
 
     /** Return the part of linear term \f$ g \f$ as described above corresponding to the requested variable.
      * @param j Which block row to get, as an iterator pointing to the slot in this factor.  You can
      * use, for example, begin() + 2 to get the 3rd variable in this factor.
      * @return The linear term \f$ g \f$ */
-    Block::ColXpr linearTerm(iterator j) { return info_(j-begin(), size()).col(0); }
+    Block::OffDiagonal::ColXpr linearTerm(iterator j) {
+      return info_(j-begin(), size()).knownOffDiagonal().col(0); }
 
     /** Return the complete linear term \f$ g \f$ as described above.
      * @return The linear term \f$ g \f$ */
-    constBlock::ColXpr linearTerm() const { return info_.range(0, this->size(), this->size(), this->size() + 1).col(0); }
+    constBlock::OffDiagonal::ColXpr linearTerm() const {
+      return info_.range(0, this->size(), this->size(), this->size() + 1).knownOffDiagonal().col(0); }
 
     /** Return the complete linear term \f$ g \f$ as described above.
      * @return The linear term \f$ g \f$ */
-    Block::ColXpr linearTerm() { return info_.range(0, this->size(), this->size(), this->size() + 1).col(0); }
+    Block::OffDiagonal::ColXpr linearTerm() {
+      return info_.range(0, this->size(), this->size(), this->size() + 1).knownOffDiagonal().col(0); }
     
     /** Return the augmented information matrix represented by this GaussianFactor.
      * The augmented information matrix contains the information matrix with an
@@ -324,7 +336,16 @@ namespace gtsam {
      * GaussianFactor.
      */
     virtual Matrix information() const;
-        
+
+    /// Return the diagonal of the Hessian for this factor
+    virtual VectorValues hessianDiagonal() const;
+
+    /* ************************************************************************* */
+    virtual void hessianDiagonal(double* d) const;
+
+    /// Return the block diagonal of the Hessian for this factor
+    virtual std::map<Key,Matrix> hessianBlockDiagonal() const;
+
     /**
      * Return (dense) matrix associated with factor
      * @param ordering of variables needed for matrix column order
@@ -359,8 +380,14 @@ namespace gtsam {
     /** y += alpha * A'*A*x */
     void multiplyHessianAdd(double alpha, const VectorValues& x, VectorValues& y) const;
 
+    void multiplyHessianAdd(double alpha, const double* x, double* y, std::vector<size_t> keys) const;
+
+    void multiplyHessianAdd(double alpha, const double* x, double* y) const {};
+
     /// eta for Hessian
     VectorValues gradientAtZero() const;
+
+    virtual void gradientAtZero(double* d) const;
 
     /**
     *   Densely partially eliminate with Cholesky factorization.  JacobianFactors are
@@ -400,9 +427,6 @@ namespace gtsam {
       EliminatePreferCholesky(const GaussianFactorGraph& factors, const Ordering& keys);
 
   private:
-
-    /** split partially eliminated factor */
-    boost::shared_ptr<GaussianConditional> splitEliminatedFactor(size_t nrFrontals);
 
     /** Serialization function */
     friend class boost::serialization::access;

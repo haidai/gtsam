@@ -151,15 +151,13 @@ void ISAM2Clique::print(const std::string& s, const KeyFormatter& formatter) con
 }
 
 /* ************************************************************************* */
-ISAM2::ISAM2(const ISAM2Params& params):
-    deltaDoglegUptodate_(true), deltaUptodate_(true), params_(params) {
+ISAM2::ISAM2(const ISAM2Params& params): params_(params), update_count_(0) {
   if(params_.optimizationParams.type() == typeid(ISAM2DoglegParams))
     doglegDelta_ = boost::get<ISAM2DoglegParams>(params_.optimizationParams).initialDelta;
 }
 
 /* ************************************************************************* */
-ISAM2::ISAM2():
-    deltaDoglegUptodate_(true), deltaUptodate_(true) {
+ISAM2::ISAM2() : update_count_(0) {
   if(params_.optimizationParams.type() == typeid(ISAM2DoglegParams))
     doglegDelta_ = boost::get<ISAM2DoglegParams>(params_.optimizationParams).initialDelta;
 }
@@ -328,7 +326,7 @@ boost::shared_ptr<FastSet<Key> > ISAM2::recalculate(const FastSet<Key>& markedKe
     affectedKeys.insert(affectedKeys.end(), conditional->beginFrontals(), conditional->endFrontals());
   gttoc(affectedKeys);
 
-  boost::shared_ptr<FastSet<Index> > affectedKeysSet(new FastSet<Key>()); // Will return this result
+  boost::shared_ptr<FastSet<Key> > affectedKeysSet(new FastSet<Key>()); // Will return this result
 
   if(affectedKeys.size() >= theta_.size() * batchThreshold)
   {
@@ -408,11 +406,11 @@ boost::shared_ptr<FastSet<Key> > ISAM2::recalculate(const FastSet<Key>& markedKe
     if(debug) factors.print("Relinearized factors: ");
     gttoc(relinearizeAffected);
 
-    if(debug) { cout << "Affected keys: "; BOOST_FOREACH(const Index key, affectedKeys) { cout << key << " "; } cout << endl; }
+    if(debug) { cout << "Affected keys: "; BOOST_FOREACH(const Key key, affectedKeys) { cout << key << " "; } cout << endl; }
 
     // Reeliminated keys for detailed results
     if(params_.enableDetailedResults) {
-      BOOST_FOREACH(Index key, affectedAndNewKeys) {
+      BOOST_FOREACH(Key key, affectedAndNewKeys) {
         result.detail->variableStatus[key].isReeliminated = true;
       }
     }
@@ -523,8 +521,7 @@ ISAM2Result ISAM2::update(
 
   gttic(ISAM2_update);
 
-  static int count = 0;
-  count++;
+  this->update_count_++;
 
   lastAffectedVariableCount = 0;
   lastAffectedFactorCount = 0;
@@ -535,7 +532,8 @@ ISAM2Result ISAM2::update(
   ISAM2Result result;
   if(params_.enableDetailedResults)
     result.detail = ISAM2Result::DetailedResults();
-  const bool relinearizeThisStep = force_relinearize || (params_.enableRelinearization && count % params_.relinearizeSkip == 0);
+  const bool relinearizeThisStep = force_relinearize
+      || (params_.enableRelinearization && update_count_ % params_.relinearizeSkip == 0);
 
   if(verbose) {
     cout << "ISAM2::update\n";
@@ -550,14 +548,10 @@ ISAM2Result ISAM2::update(
   }
 
   gttic(push_back_factors);
-  // Add the new factor indices to the result struct
-  result.newFactorsIndices.resize(newFactors.size());
-  for(size_t i=0; i<newFactors.size(); ++i)
-    result.newFactorsIndices[i] = i + nonlinearFactors_.size();
-
   // 1. Add any new factors \Factors:=\Factors\cup\Factors'.
+  // Add the new factor indices to the result struct
   if(debug || verbose) newFactors.print("The new factors are: ");
-  nonlinearFactors_.push_back(newFactors);
+  Impl::AddFactorsStep1(newFactors, params_.findUnusedFactorSlots, nonlinearFactors_, result.newFactorsIndices);
 
   // Remove the removed factors
   NonlinearFactorGraph removeFactors; removeFactors.reserve(removeFactorIndices.size());
@@ -573,7 +567,7 @@ ISAM2Result ISAM2::update(
 
   // Compute unused keys and indices
   FastSet<Key> unusedKeys;
-  FastSet<Index> unusedIndices;
+  FastSet<Key> unusedIndices;
   {
     // Get keys from removed factors and new factors, and compute unused keys,
     // i.e., keys that are empty now and do not appear in the new factors.
@@ -611,7 +605,7 @@ ISAM2Result ISAM2::update(
   FastSet<Key> markedKeys = newFactors.keys(); // Get keys from new factors
   // Also mark keys involved in removed factors
   {
-    FastSet<Index> markedRemoveKeys = removeFactors.keys(); // Get keys involved in removed factors
+    FastSet<Key> markedRemoveKeys = removeFactors.keys(); // Get keys involved in removed factors
     markedKeys.insert(markedRemoveKeys.begin(), markedRemoveKeys.end()); // Add to the overall set of marked keys
   }
   // Also mark any provided extra re-eliminate keys
@@ -629,16 +623,16 @@ ISAM2Result ISAM2::update(
   }
   // NOTE: we use assign instead of the iterator constructor here because this
   // is a vector of size_t, so the constructor unintentionally resolves to
-  // vector(size_t count, Index value) instead of the iterator constructor.
-  FastVector<Index> observedKeys;  observedKeys.reserve(markedKeys.size());
-  BOOST_FOREACH(Index index, markedKeys) {
+  // vector(size_t count, Key value) instead of the iterator constructor.
+  FastVector<Key> observedKeys;  observedKeys.reserve(markedKeys.size());
+  BOOST_FOREACH(Key index, markedKeys) {
     if(unusedIndices.find(index) == unusedIndices.end()) // Only add if not unused
       observedKeys.push_back(index); // Make a copy of these, as we'll soon add to them
   }
   gttoc(gather_involved_keys);
 
   // Check relinearization if we're at the nth step, or we are using a looser loop relin threshold
-  FastSet<Index> relinKeys;
+  FastSet<Key> relinKeys;
   if (relinearizeThisStep) {
     gttic(gather_relinearize_keys);
     // 4. Mark keys in \Delta above threshold \beta: J=\{\Delta_{j}\in\Delta|\Delta_{j}\geq\beta\}.
@@ -680,7 +674,7 @@ ISAM2Result ISAM2::update(
 
       // Relin involved keys for detailed results
       if(params_.enableDetailedResults) {
-        FastSet<Index> involvedRelinKeys;
+        FastSet<Key> involvedRelinKeys;
         BOOST_FOREACH(const sharedClique& root, roots_)
           Impl::FindAll(root, involvedRelinKeys, markedRelinMask);
         BOOST_FOREACH(Key key, involvedRelinKeys) {
@@ -707,18 +701,28 @@ ISAM2Result ISAM2::update(
   if(params_.cacheLinearizedFactors) {
     gttic(linearize);
     GaussianFactorGraph::shared_ptr linearFactors = newFactors.linearize(theta_);
-    linearFactors_.push_back(*linearFactors);
+    if(params_.findUnusedFactorSlots)
+    {
+      linearFactors_.resize(nonlinearFactors_.size());
+      for(size_t newFactorI = 0; newFactorI < newFactors.size(); ++newFactorI)
+        linearFactors_[result.newFactorsIndices[newFactorI]] = (*linearFactors)[newFactorI];
+    }
+    else
+    {
+      linearFactors_.push_back(*linearFactors);
+    }
     assert(nonlinearFactors_.size() == linearFactors_.size());
     gttoc(linearize);
-
-    gttic(augment_VI);
-    // Augment the variable index with the new factors
-    variableIndex_.augment(*linearFactors); // TODO: move this to a better place now
-    gttoc(augment_VI);
-  } else {
-    variableIndex_.augment(newFactors);
   }
   gttoc(linearize_new);
+
+  gttic(augment_VI);
+  // Augment the variable index with the new factors
+  if(params_.findUnusedFactorSlots)
+    variableIndex_.augment(newFactors, result.newFactorsIndices);
+  else
+    variableIndex_.augment(newFactors);
+  gttoc(augment_VI);
 
   gttic(recalculate);
   // 8. Redo top of Bayes tree
@@ -731,9 +735,7 @@ ISAM2Result ISAM2::update(
     deltaReplacedMask_.insert(replacedKeys->begin(), replacedKeys->end());
   gttoc(recalculate);
 
-  // After the top of the tree has been redone and may have index gaps from
-  // unused keys, condense the indices to remove gaps by rearranging indices
-  // in all data structures.
+  // Update data structures to remove unused keys
   if(!unusedKeys.empty()) {
     gttic(remove_variables);
     Impl::RemoveVariables(unusedKeys, roots_, theta_, variableIndex_, delta_, deltaNewton_, RgProd_,
@@ -741,8 +743,6 @@ ISAM2Result ISAM2::update(
     gttoc(remove_variables);
   }
   result.cliques = this->nodes().size();
-  deltaDoglegUptodate_ = false;
-  deltaUptodate_ = false;
 
   gttic(evaluate_error_after);
   if(params_.evaluateNonlinearError)
@@ -763,7 +763,7 @@ void ISAM2::marginalizeLeaves(const FastList<Key>& leafKeysList,
   // Keep track of marginal factors - map from clique to the marginal factors
   // that should be incorporated into it, passed up from it's children.
 //  multimap<sharedClique, GaussianFactor::shared_ptr> marginalFactors;
-  map<Index, vector<GaussianFactor::shared_ptr> > marginalFactors;
+  map<Key, vector<GaussianFactor::shared_ptr> > marginalFactors;
 
   // Keep track of factors that get summarized by removing cliques
   FastSet<size_t> factorIndicesToRemove;
@@ -873,7 +873,7 @@ void ISAM2::marginalizeLeaves(const FastList<Key>& leafKeysList,
             factorsFromMarginalizedInClique_step1.insert(variableIndex_[frontal].begin(), variableIndex_[frontal].end()); }
         // Remove any factors in subtrees that we're removing at this step
         BOOST_FOREACH(const sharedClique& removedChild, childrenRemoved) {
-          BOOST_FOREACH(Index indexInClique, removedChild->conditional()->frontals()) {
+          BOOST_FOREACH(Key indexInClique, removedChild->conditional()->frontals()) {
             BOOST_FOREACH(size_t factorInvolving, variableIndex_[indexInClique]) {
               factorsFromMarginalizedInClique_step1.erase(factorInvolving); } } }
         // Create factor graph from factor indices
@@ -881,8 +881,8 @@ void ISAM2::marginalizeLeaves(const FastList<Key>& leafKeysList,
           graph.push_back(nonlinearFactors_[i]->linearize(theta_)); }
 
         // Reeliminate the linear graph to get the marginal and discard the conditional
-        const FastSet<Index> cliqueFrontals(clique->conditional()->beginFrontals(), clique->conditional()->endFrontals());
-        FastVector<Index> cliqueFrontalsToEliminate;
+        const FastSet<Key> cliqueFrontals(clique->conditional()->beginFrontals(), clique->conditional()->endFrontals());
+        FastVector<Key> cliqueFrontalsToEliminate;
         std::set_intersection(cliqueFrontals.begin(), cliqueFrontals.end(), leafKeys.begin(), leafKeys.end(),
           std::back_inserter(cliqueFrontalsToEliminate));
         pair<GaussianConditional::shared_ptr, GaussianFactor::shared_ptr> eliminationResult1 =
@@ -971,20 +971,36 @@ void ISAM2::updateDelta(bool forceFullSolve) const
         boost::get<ISAM2GaussNewtonParams>(params_.optimizationParams);
     const double effectiveWildfireThreshold = forceFullSolve ? 0.0 : gaussNewtonParams.wildfireThreshold;
     gttic(Wildfire_update);
-    lastBacksubVariableCount = Impl::UpdateDelta(roots_, deltaReplacedMask_, delta_, effectiveWildfireThreshold);
+    lastBacksubVariableCount = Impl::UpdateGaussNewtonDelta(
+        roots_, deltaReplacedMask_, delta_, effectiveWildfireThreshold);
+    deltaReplacedMask_.clear();
     gttoc(Wildfire_update);
 
   } else if(params_.optimizationParams.type() == typeid(ISAM2DoglegParams)) {
     // If using Dogleg, do a Dogleg step
     const ISAM2DoglegParams& doglegParams =
         boost::get<ISAM2DoglegParams>(params_.optimizationParams);
+    const double effectiveWildfireThreshold = forceFullSolve ? 0.0 : doglegParams.wildfireThreshold;
 
     // Do one Dogleg iteration
     gttic(Dogleg_Iterate);
-    VectorValues dx_u = gtsam::optimizeGradientSearch(*this);
-    VectorValues dx_n = gtsam::optimize(*this);
+
+    // Compute Newton's method step
+    gttic(Wildfire_update);
+    lastBacksubVariableCount = Impl::UpdateGaussNewtonDelta(roots_, deltaReplacedMask_, deltaNewton_, effectiveWildfireThreshold);
+    gttoc(Wildfire_update);
+    
+    // Compute steepest descent step
+    const VectorValues gradAtZero = this->gradientAtZero(); // Compute gradient
+    Impl::UpdateRgProd(roots_, deltaReplacedMask_, gradAtZero, RgProd_); // Update RgProd
+    const VectorValues dx_u = Impl::ComputeGradientSearch(gradAtZero, RgProd_); // Compute gradient search point
+    
+    // Clear replaced keys mask because now we've updated deltaNewton_ and RgProd_
+    deltaReplacedMask_.clear();
+    
+    // Compute dogleg point
     DoglegOptimizerImpl::IterationResult doglegResult(DoglegOptimizerImpl::Iterate(
-        *doglegDelta_, doglegParams.adaptationMode, dx_u, dx_n, *this, nonlinearFactors_,
+        *doglegDelta_, doglegParams.adaptationMode, dx_u, deltaNewton_, *this, nonlinearFactors_,
         theta_, nonlinearFactors_.error(theta_), doglegParams.verbose));
     gttoc(Dogleg_Iterate);
 
@@ -994,21 +1010,15 @@ void ISAM2::updateDelta(bool forceFullSolve) const
     delta_ = doglegResult.dx_d; // Copy the VectorValues containing with the linear solution
     gttoc(Copy_dx_d);
   }
-
-  deltaUptodate_ = true;
 }
 
 /* ************************************************************************* */
 Values ISAM2::calculateEstimate() const {
   gttic(ISAM2_calculateEstimate);
-  gttic(Copy_Values);
-  Values ret(theta_);
-  gttoc(Copy_Values);
   const VectorValues& delta(getDelta());
   gttic(Expmap);
-  ret = ret.retract(delta);
+  return theta_.retract(delta);
   gttoc(Expmap);
-  return ret;
 }
 
 /* ************************************************************************* */
@@ -1019,7 +1029,8 @@ const Value& ISAM2::calculateEstimate(Key key) const {
 
 /* ************************************************************************* */
 Values ISAM2::calculateBestEstimate() const {
-  return theta_.retract(internal::linearAlgorithms::optimizeBayesTree(*this));
+  updateDelta(true); // Force full solve when updating delta_
+  return theta_.retract(delta_);
 }
 
 /* ************************************************************************* */
@@ -1029,7 +1040,7 @@ Matrix ISAM2::marginalCovariance(Key key) const {
 
 /* ************************************************************************* */
 const VectorValues& ISAM2::getDelta() const {
-  if(!deltaUptodate_)
+  if(!deltaReplacedMask_.empty())
     updateDelta();
   return delta_;
 }
@@ -1038,88 +1049,6 @@ const VectorValues& ISAM2::getDelta() const {
 double ISAM2::error(const VectorValues& x) const
 {
   return GaussianFactorGraph(*this).error(x);
-}
-
-/* ************************************************************************* */
-VectorValues optimize(const ISAM2& isam) {
-  VectorValues delta;
-  optimizeInPlace(isam, delta);
-  return delta;
-}
-
-/* ************************************************************************* */
-void optimizeInPlace(const ISAM2& isam, VectorValues& delta)
-{
-  gttic(ISAM2_optimizeInPlace);
-  // We may need to update the solution calculations
-  if(!isam.deltaDoglegUptodate_) {
-    gttic(UpdateDoglegDeltas);
-    double wildfireThreshold = 0.0;
-    if(isam.params().optimizationParams.type() == typeid(ISAM2GaussNewtonParams))
-      wildfireThreshold = boost::get<ISAM2GaussNewtonParams>(isam.params().optimizationParams).wildfireThreshold;
-    else if(isam.params().optimizationParams.type() == typeid(ISAM2DoglegParams))
-      wildfireThreshold = boost::get<ISAM2DoglegParams>(isam.params().optimizationParams).wildfireThreshold;
-    else
-      assert(false);
-    ISAM2::Impl::UpdateDoglegDeltas(isam, wildfireThreshold, isam.deltaReplacedMask_, isam.deltaNewton_, isam.RgProd_);
-    isam.deltaDoglegUptodate_ = true;
-    gttoc(UpdateDoglegDeltas);
-  }
-
-  gttic(copy_delta);
-  delta = isam.deltaNewton_;
-  gttoc(copy_delta);
-}
-
-/* ************************************************************************* */
-
-VectorValues optimizeGradientSearch(const ISAM2& isam) {
-  VectorValues grad;
-  optimizeGradientSearchInPlace(isam, grad);
-  return grad;
-}
-
-/* ************************************************************************* */
-void optimizeGradientSearchInPlace(const ISAM2& isam, VectorValues& grad)
-{
-  gttic(ISAM2_optimizeGradientSearchInPlace);
-  // We may need to update the solution calcaulations
-  if(!isam.deltaDoglegUptodate_) {
-    gttic(UpdateDoglegDeltas);
-    double wildfireThreshold = 0.0;
-    if(isam.params().optimizationParams.type() == typeid(ISAM2GaussNewtonParams))
-      wildfireThreshold = boost::get<ISAM2GaussNewtonParams>(isam.params().optimizationParams).wildfireThreshold;
-    else if(isam.params().optimizationParams.type() == typeid(ISAM2DoglegParams))
-      wildfireThreshold = boost::get<ISAM2DoglegParams>(isam.params().optimizationParams).wildfireThreshold;
-    else
-      assert(false);
-    ISAM2::Impl::UpdateDoglegDeltas(isam, wildfireThreshold, isam.deltaReplacedMask_, isam.deltaNewton_, isam.RgProd_);
-    isam.deltaDoglegUptodate_ = true;
-    gttoc(UpdateDoglegDeltas);
-  }
-
-  gttic(Compute_Gradient);
-  // Compute gradient (call gradientAtZero function, which is defined for various linear systems)
-  gradientAtZero(isam, grad);
-  double gradientSqNorm = grad.dot(grad);
-  gttoc(Compute_Gradient);
-
-  gttic(Compute_minimizing_step_size);
-  // Compute minimizing step size
-  double RgNormSq = isam.RgProd_.vector().squaredNorm();
-  double step = -gradientSqNorm / RgNormSq;
-  gttoc(Compute_minimizing_step_size);
-
-  gttic(Compute_point);
-  // Compute steepest descent point
-  grad *= step;
-  gttoc(Compute_point);
-}
-
-/* ************************************************************************* */
-
-VectorValues gradient(const ISAM2& bayesTree, const VectorValues& x0) {
-  return GaussianFactorGraph(bayesTree).gradient(x0);
 }
 
 /* ************************************************************************* */
@@ -1143,13 +1072,16 @@ static void gradientAtZeroTreeAdder(const boost::shared_ptr<ISAM2Clique>& root, 
 }
 
 /* ************************************************************************* */
-void gradientAtZero(const ISAM2& bayesTree, VectorValues& g) {
-  // Zero-out gradient
-  g.setZero();
-
+VectorValues ISAM2::gradientAtZero() const
+{
+  // Create result
+  VectorValues g;
+  
   // Sum up contributions for each clique
-  BOOST_FOREACH(const ISAM2::sharedClique& root, bayesTree.roots())
-    gradientAtZeroTreeAdder(root, g);
+  BOOST_FOREACH(const ISAM2::sharedClique& root, this->roots())
+  gradientAtZeroTreeAdder(root, g);
+  
+  return g;
 }
 
 }

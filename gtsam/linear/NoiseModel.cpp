@@ -47,22 +47,73 @@ void updateAb(MATRIX& Ab, int j, const Vector& a, const Vector& rd) {
   Ab.middleCols(j+1,n-j) -= a * rd.segment(j+1, n-j).transpose();
 }
 
+/* ************************************************************************* */
+// check *above the diagonal* for non-zero entries
+boost::optional<Vector> checkIfDiagonal(const Matrix M) {
+  size_t m = M.rows(), n = M.cols();
+  // check all non-diagonal entries
+  bool full = false;
+  size_t i, j;
+  for (i = 0; i < m; i++)
+    if (!full)
+      for (j = i + 1; j < n; j++)
+        if (fabs(M(i, j)) > 1e-9) {
+          full = true;
+          break;
+        }
+  if (full) {
+    return boost::none;
+  } else {
+    Vector diagonal(n);
+    for (j = 0; j < n; j++)
+      diagonal(j) = M(j, j);
+    return diagonal;
+  }
+}
 
 /* ************************************************************************* */
-Gaussian::shared_ptr Gaussian::Covariance(const Matrix& covariance, bool smart) {
-  size_t m = covariance.rows(), n = covariance.cols();
-  if (m != n) throw invalid_argument("Gaussian::Covariance: covariance not square");
-  if (smart) {
-    // check all non-diagonal entries
-    size_t i,j;
-    for (i = 0; i < m; i++)
-      for (j = 0; j < n; j++)
-        if (i != j && fabs(covariance(i, j)) > 1e-9) goto full;
-    Vector variances(n);
-    for (j = 0; j < n; j++) variances(j) = covariance(j,j);
-    return Diagonal::Variances(variances,true);
+Gaussian::shared_ptr Gaussian::SqrtInformation(const Matrix& R, bool smart) {
+  size_t m = R.rows(), n = R.cols();
+  if (m != n)
+    throw invalid_argument("Gaussian::SqrtInformation: R not square");
+  boost::optional<Vector> diagonal = boost::none;
+  if (smart)
+    diagonal = checkIfDiagonal(R);
+  if (diagonal)
+    return Diagonal::Sigmas(reciprocal(*diagonal), true);
+  else
+    return shared_ptr(new Gaussian(R.rows(), R));
+}
+
+/* ************************************************************************* */
+Gaussian::shared_ptr Gaussian::Information(const Matrix& M, bool smart) {
+  size_t m = M.rows(), n = M.cols();
+  if (m != n)
+    throw invalid_argument("Gaussian::Information: R not square");
+  boost::optional<Vector> diagonal = boost::none;
+  if (smart)
+    diagonal = checkIfDiagonal(M);
+  if (diagonal)
+    return Diagonal::Precisions(*diagonal, true);
+  else {
+    Matrix R = RtR(M);
+    return shared_ptr(new Gaussian(R.rows(), R));
   }
-  full: return shared_ptr(new Gaussian(n, inverse_square_root(covariance)));
+}
+
+/* ************************************************************************* */
+Gaussian::shared_ptr Gaussian::Covariance(const Matrix& covariance,
+    bool smart) {
+  size_t m = covariance.rows(), n = covariance.cols();
+  if (m != n)
+    throw invalid_argument("Gaussian::Covariance: covariance not square");
+  boost::optional<Vector> variances = boost::none;
+  if (smart)
+    variances = checkIfDiagonal(covariance);
+  if (variances)
+    return Diagonal::Variances(*variances, true);
+  else
+    return shared_ptr(new Gaussian(n, inverse_square_root(covariance)));
 }
 
 /* ************************************************************************* */
@@ -166,23 +217,22 @@ void Gaussian::WhitenSystem(Matrix& A1, Matrix& A2, Matrix& A3, Vector& b) const
 // Diagonal
 /* ************************************************************************* */
 Diagonal::Diagonal() :
-    Gaussian(1), sigmas_(ones(1)), invsigmas_(ones(1)) {
+    Gaussian(1) // TODO: Frank asks: really sure about this?
+{
 }
 
-Diagonal::Diagonal(const Vector& sigmas, bool initialize_invsigmas):
-  Gaussian(sigmas.size()), sigmas_(sigmas) {
-  if (initialize_invsigmas)
-    invsigmas_ = reciprocal(sigmas);
-  else
-    invsigmas_ = boost::none;
+/* ************************************************************************* */
+Diagonal::Diagonal(const Vector& sigmas) :
+    Gaussian(sigmas.size()), sigmas_(sigmas), invsigmas_(reciprocal(sigmas)), precisions_(
+        emul(invsigmas_, invsigmas_)) {
 }
 
 /* ************************************************************************* */
 Diagonal::shared_ptr Diagonal::Variances(const Vector& variances, bool smart) {
   if (smart) {
     // check whether all the same entry
-    DenseIndex j, n = variances.size();
-    for (j = 1; j < n; j++)
+    size_t n = variances.size();
+    for (size_t j = 1; j < n; j++)
       if (variances(j) != variances(0)) goto full;
     return Isotropic::Variance(n, variances(0), true);
   }
@@ -192,29 +242,23 @@ Diagonal::shared_ptr Diagonal::Variances(const Vector& variances, bool smart) {
 /* ************************************************************************* */
 Diagonal::shared_ptr Diagonal::Sigmas(const Vector& sigmas, bool smart) {
   if (smart) {
+    size_t n = sigmas.size();
+    if (n==0) goto full;
     // look for zeros to make a constraint
-    for (size_t i=0; i< (size_t) sigmas.size(); ++i)
-      if (sigmas(i)<1e-8)
+    for (size_t j=0; j< n; ++j)
+      if (sigmas(j)<1e-8)
         return Constrained::MixedSigmas(sigmas);
+    // check whether all the same entry
+    for (size_t j = 1; j < n; j++)
+      if (sigmas(j) != sigmas(0)) goto full;
+    return Isotropic::Sigma(n, sigmas(0), true);
   }
-  return Diagonal::shared_ptr(new Diagonal(sigmas));
+  full: return Diagonal::shared_ptr(new Diagonal(sigmas));
 }
 
 /* ************************************************************************* */
 void Diagonal::print(const string& name) const {
   gtsam::print(sigmas_, name + "diagonal sigmas");
-}
-
-/* ************************************************************************* */
-Vector Diagonal::invsigmas() const {
-  if (invsigmas_) return *invsigmas_;
-  else return reciprocal(sigmas_);
-}
-
-/* ************************************************************************* */
-double Diagonal::invsigma(size_t i) const {
-  if (invsigmas_) return (*invsigmas_)(i);
-  else return 1.0/sigmas_(i);
 }
 
 /* ************************************************************************* */
@@ -244,6 +288,31 @@ void Diagonal::WhitenInPlace(Eigen::Block<Matrix> H) const {
 
 /* ************************************************************************* */
 // Constrained
+/* ************************************************************************* */
+
+/* ************************************************************************* */
+Constrained::Constrained(const Vector& sigmas)
+  : Diagonal(sigmas), mu_(repeat(sigmas.size(), 1000.0)) {
+  for (int i=0; i<sigmas.size(); ++i) {
+    if (!std::isfinite(1./sigmas(i))) {
+      precisions_(i) = 0.0; // Set to finite value
+      invsigmas_(i) = 0.0;
+    }
+  }
+}
+
+/* ************************************************************************* */
+Constrained::Constrained(const Vector& mu, const Vector& sigmas)
+  : Diagonal(sigmas), mu_(mu) {
+//  assert(sigmas.size() == mu.size());
+  for (int i=0; i<sigmas.size(); ++i) {
+    if (!std::isfinite(1./sigmas(i))) {
+      precisions_(i) = 0.0; // Set to finite value
+      invsigmas_(i) = 0.0;
+    }
+  }
+}
+
 /* ************************************************************************* */
 Constrained::shared_ptr Constrained::MixedSigmas(const Vector& mu, const Vector& sigmas, bool smart) {
   // FIXME: can't return a diagonal shared_ptr due to conversion
@@ -284,12 +353,9 @@ Vector Constrained::whiten(const Vector& v) const {
 double Constrained::distance(const Vector& v) const {
   Vector w = Diagonal::whiten(v); // get noisemodel for constrained elements
   // TODO Find a better way of doing these checks
-  for (size_t i=0; i<dim_; ++i) { // add mu weights on constrained variables
-    if (std::isinf(w[i])) // whiten makes constrained variables infinite
+  for (size_t i=0; i<dim_; ++i)  // add mu weights on constrained variables
+    if (!std::isfinite(1./sigmas_[i])) // whiten makes constrained variables zero
       w[i] = v[i] * sqrt(mu_[i]); // TODO: may want to store sqrt rather than rebuild
-    if (std::isnan(w[i])) // ensure no other invalid values make it through
-      w[i] = v[i];
-  }
   return w.dot(w);
 }
 
@@ -298,7 +364,9 @@ Matrix Constrained::Whiten(const Matrix& H) const {
   // selective scaling
   // Now allow augmented Matrix with a new additional part coming
   // from the Lagrange multiplier.
-  return vector_scale(invsigmas(), H.block(0, 0, dim(), H.cols()), true);
+  Matrix M(H.block(0, 0, dim(), H.cols()));
+  Constrained::WhitenInPlace(M);
+  return M;
 }
 
 /* ************************************************************************* */
@@ -309,7 +377,13 @@ void Constrained::WhitenInPlace(Matrix& H) const {
   // indicating a hard constraint, we leave H's row i in place.
   // Now allow augmented Matrix with a new additional part coming
   // from the Lagrange multiplier.
-  vector_scale_inplace(invsigmas(), H, true);
+//  Inlined: vector_scale_inplace(invsigmas(), H, true);
+  // vector_scale_inplace(v, A, true);
+  for (DenseIndex i=0; i<(DenseIndex)dim_; ++i) {
+    const double& invsigma = invsigmas_(i);
+    if (std::isfinite(1./sigmas_(i)))
+      H.row(i) *= invsigma;
+  }
 }
 
 /* ************************************************************************* */

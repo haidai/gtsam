@@ -19,6 +19,8 @@
 #pragma once
 
 #include <boost/serialization/nvp.hpp>
+#include <boost/serialization/extended_type_info.hpp>
+#include <boost/serialization/singleton.hpp>
 #include <boost/serialization/shared_ptr.hpp>
 #include <boost/serialization/optional.hpp>
 #include <gtsam/base/Matrix.h>
@@ -159,10 +161,17 @@ namespace gtsam {
 
       /**
        * A Gaussian noise model created by specifying a square root information matrix.
+       * @param R The (upper-triangular) square root information matrix
+       * @param smart check if can be simplified to derived class
        */
-      static shared_ptr SqrtInformation(const Matrix& R) {
-        return shared_ptr(new Gaussian(R.rows(),R));
-      }
+      static shared_ptr SqrtInformation(const Matrix& R, bool smart = true);
+
+      /**
+       * A Gaussian noise model created by specifying an information matrix.
+       * @param M The information matrix
+       * @param smart check if can be simplified to derived class
+       */
+      static shared_ptr Information(const Matrix& M, bool smart = true);
 
       /**
        * A Gaussian noise model created by specifying a covariance matrix.
@@ -250,19 +259,19 @@ namespace gtsam {
     class GTSAM_EXPORT Diagonal : public Gaussian {
     protected:
 
-      /** sigmas and reciprocal */
-      Vector sigmas_;
-
-    private:
-
-      boost::optional<Vector> invsigmas_; ///< optional to allow for constraints
+      /**
+       * Standard deviations (sigmas), their inverse and inverse square (weights/precisions)
+       * These are all computed at construction: the idea is to use one shared model
+       * where computation is done only once, the common use case in many problems.
+       */
+      Vector sigmas_, invsigmas_, precisions_;
 
     protected:
-      /** protected constructor takes sigmas */
+      /** protected constructor - no initializations */
       Diagonal();
 
-      /** constructor to allow for disabling initializaion of invsigmas */
-      Diagonal(const Vector& sigmas, bool initialize_invsigmas=true);
+      /** constructor to allow for disabling initialization of invsigmas */
+      Diagonal(const Vector& sigmas);
 
     public:
 
@@ -272,7 +281,7 @@ namespace gtsam {
 
       /**
        * A diagonal noise model created by specifying a Vector of sigmas, i.e.
-       * standard devations, the diagonal of the square root covariance matrix.
+       * standard deviations, the diagonal of the square root covariance matrix.
        */
       static shared_ptr Sigmas(const Vector& sigmas, bool smart = true);
 
@@ -308,8 +317,14 @@ namespace gtsam {
       /**
        * Return sqrt precisions
        */
-      Vector invsigmas() const;
-      double invsigma(size_t i) const;
+      inline const Vector& invsigmas() const { return invsigmas_; }
+      inline double invsigma(size_t i) const {return invsigmas_(i);}
+
+      /**
+       * Return precisions
+       */
+      inline const Vector& precisions() const { return precisions_; }
+      inline double precision(size_t i) const {return precisions_(i);}
 
       /**
        * Return R itself, but note that Whiten(H) is cheaper than R*H
@@ -347,19 +362,22 @@ namespace gtsam {
     protected:
 
       // Sigmas are contained in the base class
+      Vector mu_; ///< Penalty function weight - needs to be large enough to dominate soft constraints
 
-      // Penalty function parameters
-      Vector mu_;
+      /**
+       * protected constructor takes sigmas.
+       * prevents any inf values
+       * from appearing in invsigmas or precisions.
+       * mu set to large default value (1000.0)
+       */
+      Constrained(const Vector& sigmas = zero(1));
 
-      /** protected constructor takes sigmas */
-      // Keeps only sigmas and calculates invsigmas when necessary
-      Constrained(const Vector& sigmas = zero(1)) :
-        Diagonal(sigmas, false), mu_(repeat(sigmas.size(), 1000.0)) {}
-
-      // Keeps only sigmas and calculates invsigmas when necessary
-      // allows for specifying mu
-      Constrained(const Vector& mu, const Vector& sigmas) :
-        Diagonal(sigmas, false), mu_(mu) {}
+      /**
+       * Constructor that prevents any inf values
+       * from appearing in invsigmas or precisions.
+       * Allows for specifying mu.
+       */
+      Constrained(const Vector& mu, const Vector& sigmas);
 
     public:
 
@@ -576,6 +594,10 @@ namespace gtsam {
       virtual Matrix Whiten(const Matrix& H) const { return H; }
       virtual void WhitenInPlace(Matrix& H) const {}
       virtual void WhitenInPlace(Eigen::Block<Matrix> H) const {}
+      virtual void whitenInPlace(Vector& v) const {}
+      virtual void unwhitenInPlace(Vector& v) const {}
+      virtual void whitenInPlace(Eigen::Block<Vector>& v) const {}
+      virtual void unwhitenInPlace(Eigen::Block<Vector>& v) const {}
 
     private:
       /** Serialization function */
@@ -851,6 +873,9 @@ namespace gtsam {
         ar & boost::serialization::make_nvp("noise_", const_cast<NoiseModel::shared_ptr&>(noise_));
       }
     };
+    
+    // Helper function
+    GTSAM_EXPORT boost::optional<Vector> checkIfDiagonal(const Matrix M);
 
   } // namespace noiseModel
 

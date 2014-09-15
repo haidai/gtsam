@@ -30,24 +30,30 @@
 #include <boost/optional.hpp>
 
 #ifdef GTSAM_USE_TBB
+#include <tbb/task_scheduler_init.h>
 #include <tbb/tbb_exception.h>
 #include <tbb/scalable_allocator.h>
 #endif
 
+#ifdef GTSAM_USE_EIGEN_MKL_OPENMP
+#include <omp.h>
+#endif
+
+#ifdef __clang__
+#  define CLANG_DIAGNOSTIC_PUSH_IGNORE(diag) \
+  _Pragma("clang diagnostic push") \
+  _Pragma("clang diagnostic ignored \"" diag "\"")
+#else
+#  define CLANG_DIAGNOSTIC_PUSH_IGNORE(diag)
+#endif
+
+#ifdef __clang__
+#  define CLANG_DIAGNOSTIC_POP() _Pragma("clang diagnostic pop")
+#else
+#  define CLANG_DIAGNOSTIC_POP()
+#endif
+
 namespace gtsam {
-
-  /// Integer variable index type
-  typedef size_t Index;
-
-  /** A function to convert indices to strings, for example by translating back
-   * to a nonlinear key and then to a Symbol. */
-  typedef boost::function<std::string(Index)> IndexFormatter;
-
-  GTSAM_EXPORT std::string _defaultIndexFormatter(Index j);
-
-  /** The default IndexFormatter outputs the index */
-  static const IndexFormatter DefaultIndexFormatter = &_defaultIndexFormatter;
-
 
   /// Integer nonlinear key type
   typedef size_t Key;
@@ -108,6 +114,9 @@ namespace gtsam {
 
     /** Operator to access the value */
     T& operator*() { return value; }
+
+    /** Operator to access the value */
+    const T& operator*() const { return value; }
 
     /** Implicit conversion allows use in if statements for bool type, etc. */
     operator T() const { return value; }
@@ -237,6 +246,41 @@ namespace gtsam {
     InvalidArgumentThreadsafe(const std::string& description) : ThreadsafeException<InvalidArgumentThreadsafe>(description) {}
   };
 
+  /* ************************************************************************* */
+#ifdef __clang__
+#  pragma clang diagnostic push
+#  pragma clang diagnostic ignored "-Wunused-private-field" // Clang complains that previousOpenMPThreads is unused in the #else case below
+#endif
+
+  /// An object whose scope defines a block where TBB and OpenMP parallelism are mixed.  In such a
+  /// block, we use default threads for TBB, and p/2 threads for OpenMP.  If GTSAM is not compiled to
+  /// use both TBB and OpenMP, this has no effect.
+  class TbbOpenMPMixedScope
+  {
+    int previousOpenMPThreads;
+
+  public:
+#if defined GTSAM_USE_TBB && defined GTSAM_USE_EIGEN_MKL_OPENMP
+    TbbOpenMPMixedScope() :
+      previousOpenMPThreads(omp_get_num_threads())
+    {
+      omp_set_num_threads(omp_get_num_procs() / 4);
+    }
+
+    ~TbbOpenMPMixedScope()
+    {
+      omp_set_num_threads(previousOpenMPThreads);
+    }
+#else
+    TbbOpenMPMixedScope() : previousOpenMPThreads(-1) {}
+    ~TbbOpenMPMixedScope() {}
+#endif
+  };
+
+#ifdef __clang__
+#  pragma clang diagnostic pop
+#endif
+
 }
 
 /* ************************************************************************* */
@@ -255,6 +299,8 @@ namespace gtsam {
 
 // Define some common g++ functions and macros we use that MSVC does not have
 
+#if (_MSC_VER < 1800)
+
 #include <boost/math/special_functions/fpclassify.hpp>
 namespace std {
   template<typename T> inline int isfinite(T a) {
@@ -264,6 +310,8 @@ namespace std {
   template<typename T> inline int isinf(T a) {
     return (int)boost::math::isinf(a); }
 }
+
+#endif
 
 #include <boost/math/constants/constants.hpp>
 #ifndef M_PI

@@ -88,6 +88,9 @@ namespace gtsam {
     template<class DERIVEDFACTOR>
     GaussianFactorGraph(const FactorGraph<DERIVEDFACTOR>& graph) : Base(graph) {}
 
+    /** Virtual destructor */
+    virtual ~GaussianFactorGraph() {}
+
     /// @name Testable
     /// @{
 
@@ -135,11 +138,18 @@ namespace gtsam {
     typedef FastSet<Key> Keys;
     Keys keys() const;
 
+    /* return a map of (Key, dimension) */
+    std::map<Key, size_t> getKeyDimMap() const;
+
+    std::vector<size_t> getkeydim() const;
+
     /** unnormalized error */
     double error(const VectorValues& x) const {
       double total_error = 0.;
-      BOOST_FOREACH(const sharedFactor& factor, *this)
-        total_error += factor->error(x);
+      BOOST_FOREACH(const sharedFactor& factor, *this){
+        if(factor)
+          total_error += factor->error(x);
+      }
       return total_error;
     }
 
@@ -147,6 +157,27 @@ namespace gtsam {
     double probPrime(const VectorValues& c) const {
       return exp(-0.5 * error(c));
     }
+
+    /**
+     * Clone() performs a deep-copy of the graph, including all of the factors.
+     * Cloning preserves null factors so indices for the original graph are still
+     * valid for the cloned graph.
+     */
+    virtual GaussianFactorGraph clone() const;
+
+    /**
+     * CloneToPtr() performs a simple assignment to a new graph and returns it.
+     * There is no preservation of null factors!
+     */
+    virtual GaussianFactorGraph::shared_ptr cloneToPtr() const;
+
+    /**
+     * Returns the negation of all factors in this graph - corresponds to antifactors.
+     * Will convert all factors to HessianFactors due to negation of information.
+     * Cloning preserves null factors so indices for the original graph are still
+     * valid for the cloned graph.
+     */
+    GaussianFactorGraph negate() const;
 
     ///@name Linear Algebra
     ///@{
@@ -204,6 +235,12 @@ namespace gtsam {
      */
     std::pair<Matrix,Vector> hessian(boost::optional<const Ordering&> optionalOrdering = boost::none) const;
 
+    /** Return only the diagonal of the Hessian A'*A, as a VectorValues */
+    virtual VectorValues hessianDiagonal() const;
+
+    /** Return the block diagonal of the Hessian for this factor */
+    virtual std::map<Key,Matrix> hessianBlockDiagonal() const;
+
     /** Solve the factor graph by performing multifrontal variable elimination in COLAMD order using
      *  the dense elimination function specified in \c function (default EliminatePreferCholesky),
      *  followed by back-substitution in the Bayes tree resulting from elimination.  Is equivalent
@@ -229,7 +266,7 @@ namespace gtsam {
      * @param [output] g A VectorValues to store the gradient, which must be preallocated,
      *        see allocateVectorValues
      * @return The gradient as a VectorValues */
-    VectorValues gradientAtZero() const;
+    virtual VectorValues gradientAtZero() const;
 
     /** Optimize along the gradient direction, with a closed-form computation to perform the line
      *  search.  The gradient is computed about \f$ \delta x=0 \f$.
@@ -272,6 +309,10 @@ namespace gtsam {
     ///** y += alpha*A'A*x */
     void multiplyHessianAdd(double alpha, const VectorValues& x,
         VectorValues& y) const;
+
+    ///** y += alpha*A'A*x */
+    void multiplyHessianAdd(double alpha, const double* x,
+        double* y) const;
 
     ///** In-place version e <- A*x that overwrites e. */
     void multiplyInPlace(const VectorValues& x, Errors& e) const;

@@ -23,7 +23,7 @@
 #include <gtsam/inference/JunctionTree.h>
 #include <gtsam/inference/ClusterTree-inst.h>
 #include <gtsam/symbolic/SymbolicConditional.h>
-#include <gtsam/symbolic/SymbolicFactorGraph.h>
+#include <gtsam/symbolic/SymbolicFactor-inst.h>
 
 namespace gtsam {
   
@@ -58,9 +58,9 @@ namespace gtsam {
     /* ************************************************************************* */
     // Post-order visitor function
     template<class BAYESTREE, class GRAPH, class ETREE_NODE>
-    void ConstructorTraversalVisitorPost(
+    void ConstructorTraversalVisitorPostAlg2(
       const boost::shared_ptr<ETREE_NODE>& ETreeNode,
-      const ConstructorTraversalData<BAYESTREE,GRAPH>& myData)
+      const ConstructorTraversalData<BAYESTREE, GRAPH>& myData)
     {
       // In this post-order visitor, we combine the symbolic elimination results from the
       // elimination tree children and symbolically eliminate the current elimination tree node.  We
@@ -70,17 +70,16 @@ namespace gtsam {
       // current node did not introduce any parents beyond those already in the child.
 
       // Do symbolic elimination for this node
-      SymbolicFactorGraph symbolicFactors;
+      class : public FactorGraph<Factor> {} symbolicFactors;
       symbolicFactors.reserve(ETreeNode->factors.size() + myData.childSymbolicFactors.size());
-      // Add symbolic versions of the ETree node factors
-      BOOST_FOREACH(const typename GRAPH::sharedFactor& factor, ETreeNode->factors) {
-        symbolicFactors.push_back(boost::make_shared<SymbolicFactor>(
-          SymbolicFactor::FromKeys(*factor))); }
+      // Add ETree node factors
+      symbolicFactors += ETreeNode->factors;
       // Add symbolic factors passed up from children
-      symbolicFactors.push_back(myData.childSymbolicFactors.begin(), myData.childSymbolicFactors.end());
+      symbolicFactors += myData.childSymbolicFactors;
+
       Ordering keyAsOrdering; keyAsOrdering.push_back(ETreeNode->key);
       std::pair<SymbolicConditional::shared_ptr, SymbolicFactor::shared_ptr> symbolicElimResult =
-        EliminateSymbolic(symbolicFactors, keyAsOrdering);
+        internal::EliminateSymbolic(symbolicFactors, keyAsOrdering);
 
       // Store symbolic elimination results in the parent
       myData.parentData->childSymbolicConditionals.push_back(symbolicElimResult.first);
@@ -88,17 +87,18 @@ namespace gtsam {
 
       // Merge our children if they are in our clique - if our conditional has exactly one fewer
       // parent than our child's conditional.
+      size_t myNrFrontals = 1;
       const size_t myNrParents = symbolicElimResult.first->nrParents();
       size_t nrMergedChildren = 0;
       assert(myData.myJTNode->children.size() == myData.childSymbolicConditionals.size());
       // Loop over children
-      int combinedProblemSize = (int)symbolicElimResult.first->size();
+      int combinedProblemSize = (int) (symbolicElimResult.first->size() * symbolicFactors.size());
       for(size_t child = 0; child < myData.childSymbolicConditionals.size(); ++child) {
         // Check if we should merge the child
-        if(myNrParents + 1 == myData.childSymbolicConditionals[child]->nrParents()) {
+        if(myNrParents + myNrFrontals == myData.childSymbolicConditionals[child]->nrParents()) {
           // Get a reference to the child, adjusting the index to account for children previously
           // merged and removed from the child list.
-          const typename JunctionTree<BAYESTREE,GRAPH>::Node& childToMerge =
+          const typename JunctionTree<BAYESTREE, GRAPH>::Node& childToMerge =
             *myData.myJTNode->children[child - nrMergedChildren];
           // Merge keys, factors, and children.
           myData.myJTNode->keys.insert(myData.myJTNode->keys.begin(), childToMerge.keys.begin(), childToMerge.keys.end());
@@ -106,6 +106,8 @@ namespace gtsam {
           myData.myJTNode->children.insert(myData.myJTNode->children.end(), childToMerge.children.begin(), childToMerge.children.end());
           // Increment problem size
           combinedProblemSize = std::max(combinedProblemSize, childToMerge.problemSize_);
+          // Increment number of frontal variables
+          myNrFrontals += childToMerge.keys.size();
           // Remove child from list.
           myData.myJTNode->children.erase(myData.myJTNode->children.begin() + (child - nrMergedChildren));
           // Increment number of merged children
@@ -134,7 +136,7 @@ namespace gtsam {
     ConstructorTraversalData<BAYESTREE, GRAPH> rootData(0);
     rootData.myJTNode = boost::make_shared<typename Base::Node>(); // Make a dummy node to gather the junction tree roots
     treeTraversal::DepthFirstForest(eliminationTree, rootData,
-      ConstructorTraversalVisitorPre<BAYESTREE,GRAPH,ETreeNode>, ConstructorTraversalVisitorPost<BAYESTREE,GRAPH,ETreeNode>);
+      ConstructorTraversalVisitorPre<BAYESTREE,GRAPH,ETreeNode>, ConstructorTraversalVisitorPostAlg2<BAYESTREE,GRAPH,ETreeNode>);
 
     // Assign roots from the dummy node
     Base::roots_ = rootData.myJTNode->children;

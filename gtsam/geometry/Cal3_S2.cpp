@@ -76,9 +76,9 @@ Point2 Cal3_S2::uncalibrate(const Point2& p, boost::optional<Matrix&> Dcal,
     boost::optional<Matrix&> Dp) const {
   const double x = p.x(), y = p.y();
   if (Dcal)
-    *Dcal = Matrix_(2, 5, x, 0.0, y, 1.0, 0.0, 0.0, y, 0.0, 0.0, 1.0);
+    *Dcal = (Matrix(2, 5) << x, 0.0, y, 1.0, 0.0, 0.0, y, 0.0, 0.0, 1.0);
   if (Dp)
-    *Dp = Matrix_(2, 2, fx_, s_, 0.000, fy_);
+    *Dp = (Matrix(2, 2) << fx_, s_, 0.000, fy_);
   return Point2(fx_ * x + s_ * y + u0_, fy_ * y + v0_);
 }
 
@@ -87,6 +87,11 @@ Point2 Cal3_S2::calibrate(const Point2& p) const {
   const double u = p.x(), v = p.y();
   return Point2((1 / fx_) * (u - u0_ - (s_ / fy_) * (v - v0_)),
       (1 / fy_) * (v - v0_));
+}
+
+/* ************************************************************************* */
+Vector3 Cal3_S2::calibrate(const Vector3& p) const {
+  return matrix_inverse() * p;
 }
 
 /* ************************************************************************* */

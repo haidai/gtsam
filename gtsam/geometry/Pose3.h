@@ -48,8 +48,9 @@ public:
   typedef Point3 Translation;
 
 private:
-  Rot3 R_;
-  Point3 t_;
+
+  Rot3 R_;   ///< Rotation gRp, between global and pose frame
+  Point3 t_; ///< Translation gTp, from global origin to pose frame origin
 
 public:
 
@@ -218,7 +219,7 @@ public:
      * @return xihat, 4*4 element of Lie algebra that can be exponentiated
      */
     static Matrix wedge(double wx, double wy, double wz, double vx, double vy, double vz) {
-      return Matrix_(4,4,
+      return (Matrix(4,4) <<
           0.,-wz,  wy,  vx,
           wz,  0.,-wx,  vy,
           -wy, wx,   0., vz,

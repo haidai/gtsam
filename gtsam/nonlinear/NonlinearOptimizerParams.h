@@ -34,10 +34,10 @@ class GTSAM_EXPORT NonlinearOptimizerParams {
 public:
   /** See NonlinearOptimizerParams::verbosity */
   enum Verbosity {
-    SILENT, ERROR, VALUES, DELTA, LINEAR
+    SILENT, TERMINATION, ERROR, VALUES, DELTA, LINEAR
   };
 
-  size_t maxIterations; ///< The maximum iterations to stop iterating (default 100)
+  int maxIterations; ///< The maximum iterations to stop iterating (default 100)
   double relativeErrorTol; ///< The maximum relative error decrease to stop iterating (default 1e-5)
   double absoluteErrorTol; ///< The maximum absolute error decrease to stop iterating (default 1e-5)
   double errorTol; ///< The maximum total error to stop iterating (default 0.0)
@@ -52,7 +52,7 @@ public:
   }
   virtual void print(const std::string& str = "") const;
 
-  size_t getMaxIterations() const {
+  int getMaxIterations() const {
     return maxIterations;
   }
   double getRelativeErrorTol() const {
@@ -68,7 +68,7 @@ public:
     return verbosityTranslator(verbosity);
   }
 
-  void setMaxIterations(size_t value) {
+  void setMaxIterations(int value) {
     maxIterations = value;
   }
   void setRelativeErrorTol(double value) {
@@ -84,9 +84,8 @@ public:
     verbosity = verbosityTranslator(src);
   }
 
-private:
-  Verbosity verbosityTranslator(const std::string &s) const;
-  std::string verbosityTranslator(Verbosity value) const;
+  static Verbosity verbosityTranslator(const std::string &s) ;
+  static std::string verbosityTranslator(Verbosity value) ;
 
   // Successive Linearization Parameters
 
@@ -99,7 +98,7 @@ public:
     MULTIFRONTAL_QR,
     SEQUENTIAL_CHOLESKY,
     SEQUENTIAL_QR,
-    CONJUGATE_GRADIENT, /* Experimental Flag */
+    Iterative, /* Experimental Flag */
     CHOLMOD, /* Experimental Flag */
   };
 
@@ -121,8 +120,8 @@ public:
     return (linearSolverType == CHOLMOD);
   }
 
-  inline bool isCG() const {
-    return (linearSolverType == CONJUGATE_GRADIENT);
+  inline bool isIterative() const {
+    return (linearSolverType == Iterative);
   }
 
   GaussianFactorGraph::Eliminate getEliminationFunction() const {
@@ -148,7 +147,9 @@ public:
   void setLinearSolverType(const std::string& solver) {
     linearSolverType = linearSolverTranslator(solver);
   }
-  void setIterativeParams(const SubgraphSolverParameters& params);
+
+  void setIterativeParams(const boost::shared_ptr<IterativeOptimizationParameters> params);
+
   void setOrdering(const Ordering& ordering) {
     this->ordering = ordering;
   }

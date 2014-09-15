@@ -32,7 +32,7 @@ struct GTSAM_EXPORT ISAM2::Impl {
     size_t nFullSystemVars;
     enum { /*AS_ADDED,*/ COLAMD } algorithm;
     enum { NO_CONSTRAINT, CONSTRAIN_LAST } constrain;
-    boost::optional<FastMap<Index,int> > constrainedKeys;
+    boost::optional<FastMap<Key,int> > constrainedKeys;
   };
 
   /**
@@ -47,6 +47,12 @@ struct GTSAM_EXPORT ISAM2::Impl {
   static void AddVariables(const Values& newTheta, Values& theta, VectorValues& delta,
       VectorValues& deltaNewton, VectorValues& RgProd,
       const KeyFormatter& keyFormatter = DefaultKeyFormatter);
+
+  /// Perform the first part of the bookkeeping updates for adding new factors.  Adds them to the
+  /// complete list of nonlinear factors, and populates the list of new factor indices, both
+  /// optionally finding and reusing empty factor slots.
+  static void AddFactorsStep1(const NonlinearFactorGraph& newFactors, bool useUnusedSlots,
+    NonlinearFactorGraph& nonlinearFactors, FastVector<size_t>& newFactorIndices);
     
   /**
    * Remove variables from the ISAM2 system.
@@ -65,7 +71,7 @@ struct GTSAM_EXPORT ISAM2::Impl {
    * @return The set of variable indices in delta whose magnitude is greater than or
    * equal to relinearizeThreshold
    */
-  static FastSet<Index> CheckRelinearizationFull(const VectorValues& delta,
+  static FastSet<Key> CheckRelinearizationFull(const VectorValues& delta,
       const ISAM2Params::RelinearizationThreshold& relinearizeThreshold);
 
   /**
@@ -79,7 +85,7 @@ struct GTSAM_EXPORT ISAM2::Impl {
    * @return The set of variable indices in delta whose magnitude is greater than or
    * equal to relinearizeThreshold
    */
-  static FastSet<Index> CheckRelinearizationPartial(const FastVector<ISAM2::sharedClique>& roots,
+  static FastSet<Key> CheckRelinearizationPartial(const FastVector<ISAM2::sharedClique>& roots,
     const VectorValues& delta, const ISAM2Params::RelinearizationThreshold& relinearizeThreshold);
 
   /**
@@ -97,7 +103,7 @@ struct GTSAM_EXPORT ISAM2::Impl {
    *
    * Alternatively could we trace up towards the root for each variable here?
    */
-  static void FindAll(ISAM2Clique::shared_ptr clique, FastSet<Index>& keys, const FastSet<Key>& markedMask);
+  static void FindAll(ISAM2Clique::shared_ptr clique, FastSet<Key>& keys, const FastSet<Key>& markedMask);
 
   /**
    * Apply expmap to the given values, but only for indices appearing in
@@ -117,11 +123,24 @@ struct GTSAM_EXPORT ISAM2::Impl {
       boost::optional<VectorValues&> invalidateIfDebug = boost::none,
       const KeyFormatter& keyFormatter = DefaultKeyFormatter);
 
-  static size_t UpdateDelta(const FastVector<ISAM2::sharedClique>& roots,
-    FastSet<Key>& replacedKeys, VectorValues& delta, double wildfireThreshold);
+  /**
+   * Update the Newton's method step point, using wildfire
+   */
+  static size_t UpdateGaussNewtonDelta(const FastVector<ISAM2::sharedClique>& roots,
+      const FastSet<Key>& replacedKeys, VectorValues& delta, double wildfireThreshold);
 
-  static size_t UpdateDoglegDeltas(const ISAM2& isam, double wildfireThreshold, FastSet<Key>& replacedKeys,
-      VectorValues& deltaNewton, VectorValues& RgProd);
+  /**
+   * Update the RgProd (R*g) incrementally taking into account which variables
+   * have been recalculated in \c replacedKeys.  Only used in Dogleg.
+   */
+  static size_t UpdateRgProd(const ISAM2::Roots& roots, const FastSet<Key>& replacedKeys,
+      const VectorValues& gradAtZero, VectorValues& RgProd);
+  
+  /**
+   * Compute the gradient-search point.  Only used in Dogleg.
+   */
+  static VectorValues ComputeGradientSearch(const VectorValues& gradAtZero,
+                                            const VectorValues& RgProd);
 
 };
 

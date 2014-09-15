@@ -45,7 +45,7 @@ TEST( InvDepthFactorVariant1, optimize) {
   double theta = atan2(ray.y(), ray.x());
   double phi = atan2(ray.z(), sqrt(ray.x()*ray.x()+ray.y()*ray.y()));
   double rho = 1./ray.norm();
-  LieVector expected(6, x, y, z, theta, phi, rho);
+  LieVector expected((Vector(6) << x, y, z, theta, phi, rho));
 
 
   
@@ -66,9 +66,9 @@ TEST( InvDepthFactorVariant1, optimize) {
 
   // Create a values with slightly incorrect initial conditions
   Values values;
-  values.insert(poseKey1, pose1.retract((Vec(6) << +0.01, -0.02, +0.03, -0.10, +0.20, -0.30)));
-  values.insert(poseKey2, pose2.retract((Vec(6) << +0.01, +0.02, -0.03, -0.10, +0.20, +0.30)));
-  values.insert(landmarkKey, expected.retract((Vec(6) << -0.20, +0.20, -0.35, +0.02, -0.04, +0.05)));
+  values.insert(poseKey1, pose1.retract((Vector(6) << +0.01, -0.02, +0.03, -0.10, +0.20, -0.30)));
+  values.insert(poseKey2, pose2.retract((Vector(6) << +0.01, +0.02, -0.03, -0.10, +0.20, +0.30)));
+  values.insert(landmarkKey, expected.retract((Vector(6) << -0.20, +0.20, -0.35, +0.02, -0.04, +0.05)));
 
   // Optimize the graph to recover the actual landmark position
   LevenbergMarquardtParams params;

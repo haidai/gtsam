@@ -78,6 +78,41 @@ TEST(SymbolicBayesTree, clear)
   CHECK(assert_equal(expected, bayesTree));
 }
 
+/* ************************************************************************* */
+TEST(SymbolicBayesTree, clique_structure)
+{
+  //        l1                  l2
+  //    /    |                /  |
+  // x1 --- x2 --- x3 --- x4 --- x5
+  //                          \  |
+  //                            l3
+  SymbolicFactorGraph graph;
+  graph += SymbolicFactor(X(1), L(1));
+  graph += SymbolicFactor(X(1), X(2));
+  graph += SymbolicFactor(X(2), L(1));
+  graph += SymbolicFactor(X(2), X(3));
+  graph += SymbolicFactor(X(3), X(4));
+  graph += SymbolicFactor(X(4), L(2));
+  graph += SymbolicFactor(X(4), X(5));
+  graph += SymbolicFactor(L(2), X(5));
+  graph += SymbolicFactor(X(4), L(3));
+  graph += SymbolicFactor(X(5), L(3));
+
+  SymbolicBayesTree expected;
+  expected.insertRoot(
+    MakeClique(list_of(X(2)) (X(3)), 2, list_of
+      (MakeClique(list_of(X(4)) (X(3)), 1, list_of
+        (MakeClique(list_of(X(5)) (L(2)) (X(4)), 2, list_of
+          (MakeClique(list_of(L(3)) (X(4)) (X(5)), 1))))))
+      (MakeClique(list_of(X(1)) (L(1)) (X(2)), 2))));
+
+  Ordering order = list_of(X(1)) (L(3)) (L(1)) (X(5)) (X(2)) (L(2)) (X(4)) (X(3));
+
+  SymbolicBayesTree actual = *graph.eliminateMultifrontal(order);
+
+  EXPECT(assert_equal(expected, actual));
+}
+
 /* ************************************************************************* *
 Bayes Tree for testing conversion to a forest of orphans needed for incremental.
        A,B
@@ -145,19 +180,19 @@ TEST( BayesTree, removePath2 )
 
   // Check expected outcome
   SymbolicFactorGraph expected;
-  expected += SymbolicFactor(_S_,_E_,_L_,_B_);
+  expected += SymbolicFactor(_E_,_L_,_B_);
   CHECK(assert_equal(expected, factors));
   SymbolicBayesTree::Cliques expectedOrphans;
-  expectedOrphans += bayesTree[_T_], bayesTree[_X_];
+  expectedOrphans += bayesTree[_S_], bayesTree[_T_], bayesTree[_X_];
   CHECK(assert_container_equal(expectedOrphans|indirected, orphans|indirected));
 }
 
 /* ************************************************************************* */
-TEST( BayesTree, removePath3 )
+TEST(BayesTree, removePath3)
 {
   SymbolicBayesTree bayesTree = asiaBayesTree;
 
-  // Call remove-path with clique S
+  // Call remove-path with clique T
   SymbolicBayesNet bn;
   SymbolicBayesTree::Cliques orphans;
   bayesTree.removePath(bayesTree[_T_], bn, orphans);
@@ -165,11 +200,11 @@ TEST( BayesTree, removePath3 )
 
   // Check expected outcome
   SymbolicFactorGraph expected;
-  expected += SymbolicFactor(_S_,_E_,_L_,_B_);
-  expected += SymbolicFactor(_T_,_E_,_L_);
+  expected += SymbolicFactor(_E_, _L_, _B_);
+  expected += SymbolicFactor(_T_, _E_, _L_);
   CHECK(assert_equal(expected, factors));
   SymbolicBayesTree::Cliques expectedOrphans;
-  expectedOrphans += bayesTree[_X_];
+  expectedOrphans += bayesTree[_S_], bayesTree[_X_];
   CHECK(assert_container_equal(expectedOrphans|indirected, orphans|indirected));
 }
 
@@ -216,7 +251,7 @@ TEST( BayesTree, shortcutCheck )
   // Check if all the cached shortcuts are cleared
   rootClique->deleteCachedShortcuts();
   BOOST_FOREACH(SymbolicBayesTree::sharedClique& clique, allCliques) {
-    bool notCleared = clique->cachedSeparatorMarginal();
+    bool notCleared = clique->cachedSeparatorMarginal().is_initialized();
     CHECK( notCleared == false);
   }
   EXPECT_LONGS_EQUAL(0, (long)rootClique->numCachedSeparatorMarginals());
@@ -248,7 +283,8 @@ TEST( BayesTree, removeTop )
 
   // Check expected outcome
   SymbolicBayesNet expected;
-  expected += SymbolicConditional::FromKeys(list_of(_S_)(_E_)(_L_)(_B_), 4);
+  expected += SymbolicConditional::FromKeys(list_of(_E_)(_L_)(_B_), 3);
+  expected += SymbolicConditional::FromKeys(list_of(_S_)(_B_)(_L_), 1);
   CHECK(assert_equal(expected, bn));
 
   SymbolicBayesTree::Cliques expectedOrphans;
@@ -284,12 +320,12 @@ TEST( BayesTree, removeTop2 )
 
   // Check expected outcome
   SymbolicBayesNet expected = list_of
-    (SymbolicConditional::FromKeys(list_of(_S_)(_E_)(_L_)(_B_), 4))
+    (SymbolicConditional::FromKeys(list_of(_E_)(_L_)(_B_), 3))
     (SymbolicConditional::FromKeys(list_of(_T_)(_E_)(_L_), 1));
   CHECK(assert_equal(expected, bn));
 
   SymbolicBayesTree::Cliques expectedOrphans;
-  expectedOrphans += bayesTree[_X_];
+  expectedOrphans += bayesTree[_S_], bayesTree[_X_];
   CHECK(assert_container_equal(expectedOrphans|indirected, orphans|indirected));
 }
 
@@ -414,7 +450,9 @@ TEST( SymbolicBayesTree, thinTree ) {
     // check shortcut P(S8||R) to root
     SymbolicBayesTree::Clique::shared_ptr c = bayesTree[8];
     SymbolicBayesNet shortcut = c->shortcut(R);
-    SymbolicBayesNet expected = list_of(SymbolicConditional(14, 11, 13));
+    SymbolicBayesNet expected = list_of
+      (SymbolicConditional(12, 14))
+      (SymbolicConditional(14, 11, 13));
     EXPECT(assert_equal(expected, shortcut));
   }
 

@@ -40,20 +40,6 @@ using symbol_shorthand::B;
 /* ************************************************************************* */
 namespace {
 
-Vector callEvaluateError(const ImuFactor& factor,
-    const Pose3& pose_i, const LieVector& vel_i, const Pose3& pose_j, const LieVector& vel_j,
-    const imuBias::ConstantBias& bias)
-{
-  return factor.evaluateError(pose_i, vel_i, pose_j, vel_j, bias);
-}
-
-Rot3 evaluateRotationError(const ImuFactor& factor,
-    const Pose3& pose_i, const LieVector& vel_i, const Pose3& pose_j, const LieVector& vel_j,
-    const imuBias::ConstantBias& bias)
-{
-  return Rot3::Expmap(factor.evaluateError(pose_i, vel_i, pose_j, vel_j, bias).tail(3) ) ;
-}
-
 ImuFactor::PreintegratedMeasurements evaluatePreintegratedMeasurements(
     const imuBias::ConstantBias& bias,
     const list<Vector3>& measuredAccs,
@@ -108,17 +94,6 @@ Rot3 evaluatePreintegratedMeasurementsRotation(
       measuredAccs, measuredOmegas, deltaTs).deltaRij;
 }
 
-Rot3 evaluateRotation(const Vector3 measuredOmega, const Vector3 biasOmega, const double deltaT)
-{
-  return Rot3::Expmap((measuredOmega - biasOmega) * deltaT);
-}
-
-
-Vector3 evaluateLogRotation(const Vector3 thetahat, const Vector3 deltatheta)
-{
-  return Rot3::Logmap( Rot3::Expmap(thetahat).compose( Rot3::Expmap(deltatheta) ) );
-}
-
 }
 
 /* ************************************************************************* */
@@ -168,9 +143,9 @@ TEST( CombinedImuFactor, ErrorWithBiases )
   imuBias::ConstantBias bias(Vector3(0.2, 0, 0), Vector3(0, 0, 0.3)); // Biases (acc, rot)
   imuBias::ConstantBias bias2(Vector3(0.2, 0.2, 0), Vector3(1, 0, 0.3)); // Biases (acc, rot)
   Pose3 x1(Rot3::Expmap(Vector3(0, 0, M_PI/4.0)), Point3(5.0, 1.0, -50.0));
-  LieVector v1(3, 0.5, 0.0, 0.0);
+  LieVector v1((Vector(3) << 0.5, 0.0, 0.0));
   Pose3 x2(Rot3::Expmap(Vector3(0, 0, M_PI/4.0 + M_PI/10.0)), Point3(5.5, 1.0, -50.0));
-  LieVector v2(3, 0.5, 0.0, 0.0);
+  LieVector v2((Vector(3) << 0.5, 0.0, 0.0));
 
   // Measurements
   Vector3 gravity; gravity << 0, 0, 9.81;
@@ -208,7 +183,7 @@ TEST( CombinedImuFactor, ErrorWithBiases )
     ImuFactor factor(X(1), V(1), X(2), V(2), B(1), pre_int_data, gravity, omegaCoriolis);
 
     noiseModel::Gaussian::shared_ptr Combinedmodel = noiseModel::Gaussian::Covariance(Combined_pre_int_data.PreintMeasCov);
-    CombinedImuFactor Combinedfactor(X(1), V(1), X(2), V(2), B(1), B(2), Combined_pre_int_data, gravity, omegaCoriolis, Combinedmodel);
+    CombinedImuFactor Combinedfactor(X(1), V(1), X(2), V(2), B(1), B(2), Combined_pre_int_data, gravity, omegaCoriolis);
 
 
     Vector errorExpected = factor.evaluateError(x1, v1, x2, v2, bias);
@@ -285,7 +260,7 @@ TEST( CombinedImuFactor, FirstOrderPreIntegratedMeasurements )
   EXPECT(assert_equal(expectedDelVdelBiasAcc, preintegrated.delVdelBiasAcc));
   EXPECT(assert_equal(expectedDelVdelBiasOmega, preintegrated.delVdelBiasOmega));
   EXPECT(assert_equal(expectedDelRdelBiasAcc, Matrix::Zero(3,3)));
-  EXPECT(assert_equal(expectedDelRdelBiasOmega, preintegrated.delRdelBiasOmega));
+  EXPECT(assert_equal(expectedDelRdelBiasOmega, preintegrated.delRdelBiasOmega, 1e-3)); // 1e-3 needs to be added only when using quaternions for rotations
 }
 
 #include <gtsam/linear/GaussianFactorGraph.h>

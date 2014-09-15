@@ -9,18 +9,22 @@
 * -------------------------------------------------------------------------- */
 
 /**
-* @file    timeIncremental.cpp
+* @file    SolverComparer.cpp
 * @brief   Incremental and batch solving, timing, and accuracy comparisons
 * @author  Richard Roberts
+* @date    August, 2013
 */
 
 #include <gtsam/base/timing.h>
+#include <gtsam/base/treeTraversal-inst.h>
 #include <gtsam/slam/dataset.h>
 #include <gtsam/geometry/Pose2.h>
 #include <gtsam/slam/PriorFactor.h>
 #include <gtsam/slam/BetweenFactor.h>
 #include <gtsam/slam/BearingRangeFactor.h>
 #include <gtsam/inference/Symbol.h>
+#include <gtsam/linear/GaussianJunctionTree.h>
+#include <gtsam/linear/GaussianEliminationTree.h>
 #include <gtsam/nonlinear/ISAM2.h>
 #include <gtsam/nonlinear/GaussNewtonOptimizer.h>
 #include <gtsam/nonlinear/Marginals.h>
@@ -91,9 +95,11 @@ int lastStep;
 int nThreads;
 int relinSkip;
 bool incremental;
+bool dogleg;
 bool batch;
 bool compare;
 bool perturb;
+bool stats;
 double perturbationNoise;
 string compareFile1, compareFile2;
 
@@ -105,6 +111,7 @@ void runIncremental();
 void runBatch();
 void runCompare();
 void runPerturb();
+void runStats();
 
 /* ************************************************************************* */
 int main(int argc, char *argv[]) {
@@ -120,9 +127,11 @@ int main(int argc, char *argv[]) {
     ("threads", po::value<int>(&nThreads)->default_value(-1), "Number of threads, or -1 to use all processors")
     ("relinSkip", po::value<int>(&relinSkip)->default_value(10), "Fluid relinearization check every arg steps")
     ("incremental", "Run in incremental mode using ISAM2 (default)")
+    ("dogleg", "When in incremental mode, solve with Dogleg instead of Gauss-Newton in iSAM2")
     ("batch", "Run in batch mode, requires an initialization from --read-solution")
     ("compare", po::value<vector<string> >()->multitoken(), "Compare two solution files")
     ("perturb", po::value<double>(&perturbationNoise), "Perturb a solution file with the specified noise")
+    ("stats", "Gather factorization statistics about the dataset, writes text-file histograms")
     ;
   po::variables_map vm;
   po::store(po::command_line_parser(argc, argv).options(desc).run(), vm);
@@ -131,7 +140,10 @@ int main(int argc, char *argv[]) {
   batch = (vm.count("batch") > 0);
   compare = (vm.count("compare") > 0);
   perturb = (vm.count("perturb") > 0);
-  incremental = (vm.count("incremental") > 0 || (!batch && !compare && !perturb));
+  stats = (vm.count("stats") > 0);
+  const int modesSpecified = int(batch) + int(compare) + int(perturb) + int(stats);
+  incremental = (vm.count("incremental") > 0 || modesSpecified == 0);
+  dogleg = (vm.count("dogleg") > 0);
   if(compare) {
     const vector<string>& compareFiles = vm["compare"].as<vector<string> >();
     if(compareFiles.size() != 2) {
@@ -142,15 +154,15 @@ int main(int argc, char *argv[]) {
     compareFile2 = compareFiles[1];
   }
 
-  if((batch && incremental) || (batch && compare) || (incremental && compare)) {
-    cout << "Only one of --incremental, --batch, and --compare may be specified\n" << desc << endl;
+  if(modesSpecified > 1) {
+    cout << "Only one of --incremental, --batch, --compare, --perturb, and --stats may be specified\n" << desc << endl;
     exit(1);
   }
   if((incremental || batch) && datasetName.empty()) {
     cout << "In incremental and batch modes, a dataset must be specified\n" << desc << endl;
     exit(1);
   }
-  if(!(incremental || batch) && !datasetName.empty()) {
+  if(!(incremental || batch || stats) && !datasetName.empty()) {
     cout << "A dataset may only be specified in incremental or batch modes\n" << desc << endl;
     exit(1);
   }
@@ -160,6 +172,10 @@ int main(int argc, char *argv[]) {
   }
   if(perturb && (inputFile.empty() || outputFile.empty())) {
     cout << "In perturb mode, specify input and output files\n" << desc << endl;
+    exit(1);
+  }
+  if(stats && (datasetName.empty() || inputFile.empty())) {
+    cout << "In stats mode, specify dataset and input file\n" << desc << endl;
     exit(1);
   }
 
@@ -210,6 +226,8 @@ int main(int argc, char *argv[]) {
     runCompare();
   else if(perturb)
     runPerturb();
+  else if(stats)
+    runStats();
 
   return 0;
 }
@@ -218,6 +236,8 @@ int main(int argc, char *argv[]) {
 void runIncremental()
 {
   ISAM2Params params;
+  if(dogleg)
+    params.optimizationParams = ISAM2DoglegParams();
   params.relinearizeSkip = relinSkip;
   params.enablePartialRelinearizationCheck = true;
   ISAM2 isam2(params);
@@ -521,8 +541,8 @@ void runCompare()
 void runPerturb()
 {
   // Set up random number generator
-  boost::random::mt19937 rng;
-  boost::random::normal_distribution<double> normal(0.0, perturbationNoise);
+  boost::mt19937 rng;
+  boost::normal_distribution<double> normal(0.0, perturbationNoise);
 
   // Perturb values
   VectorValues noise;
@@ -548,3 +568,28 @@ void runPerturb()
 
 }
 
+/* ************************************************************************* */
+void runStats()
+{
+  cout << "Gathering statistics..." << endl;
+  GaussianFactorGraph linear = *datasetMeasurements.linearize(initial);
+  GaussianJunctionTree jt(GaussianEliminationTree(linear, Ordering::COLAMD(linear)));
+  treeTraversal::ForestStatistics statistics = treeTraversal::GatherStatistics(jt);
+
+  ofstream file;
+
+  cout << "Writing SolverComparer_Stats_problemSizeHistogram.txt..." << endl;
+  file.open("SolverComparer_Stats_problemSizeHistogram.txt");
+  treeTraversal::ForestStatistics::Write(file, statistics.problemSizeHistogram);
+  file.close();
+
+  cout << "Writing SolverComparer_Stats_numberOfChildrenHistogram.txt..." << endl;
+  file.open("SolverComparer_Stats_numberOfChildrenHistogram.txt");
+  treeTraversal::ForestStatistics::Write(file, statistics.numberOfChildrenHistogram);
+  file.close();
+
+  cout << "Writing SolverComparer_Stats_problemSizeOfSecondLargestChildHistogram.txt..." << endl;
+  file.open("SolverComparer_Stats_problemSizeOfSecondLargestChildHistogram.txt");
+  treeTraversal::ForestStatistics::Write(file, statistics.problemSizeOfSecondLargestChildHistogram);
+  file.close();
+}

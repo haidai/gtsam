@@ -81,7 +81,7 @@ public:
    * The number of variable entries.  This is one greater than the variable
    * with the highest index.
    */
-  Index size() const { return index_.size(); }
+  Key size() const { return index_.size(); }
 
   /** The number of factors in the original factor graph */
   size_t nFactors() const { return nFactors_; }
@@ -106,7 +106,8 @@ public:
   bool equals(const VariableIndex& other, double tol=0.0) const;
 
   /** Print the variable index (for unit tests and debugging). */
-  void print(const std::string& str = "VariableIndex: ") const;
+  void print(const std::string& str = "VariableIndex: ",
+      const KeyFormatter& keyFormatter = DefaultKeyFormatter) const;
 
   /**
    * Output dual hypergraph to Metis file format for use with hmetis
@@ -124,7 +125,7 @@ public:
    * solving problems incrementally.
    */
   template<class FG>
-  void augment(const FG& factors);
+  void augment(const FG& factors, boost::optional<const FastVector<size_t>&> newFactorIndices = boost::none);
 
   /**
    * Remove entries corresponding to the specified factors. NOTE: We intentionally do not decrement
@@ -153,11 +154,11 @@ public:
   const_iterator find(Key key) const { return index_.find(key); }
 
 protected:
-  Factor_iterator factorsBegin(Index variable) { return internalAt(variable).begin(); }
-  Factor_iterator factorsEnd(Index variable) { return internalAt(variable).end(); }
+  Factor_iterator factorsBegin(Key variable) { return internalAt(variable).begin(); }
+  Factor_iterator factorsEnd(Key variable) { return internalAt(variable).end(); }
 
-  Factor_const_iterator factorsBegin(Index variable) const { return internalAt(variable).begin(); }
-  Factor_const_iterator factorsEnd(Index variable) const { return internalAt(variable).end(); }
+  Factor_const_iterator factorsBegin(Key variable) const { return internalAt(variable).begin(); }
+  Factor_const_iterator factorsEnd(Key variable) const { return internalAt(variable).end(); }
 
   /// Internal version of 'at' that asserts existence
   const Factors& internalAt(Key variable) const {

@@ -20,6 +20,7 @@ using namespace boost::assign;
 #include <boost/make_shared.hpp>
 
 #include <CppUnitLite/TestHarness.h>
+#include <gtsam/base/TestableAssertions.h>
 #include <gtsam/symbolic/SymbolicConditional.h>
 
 using namespace std;
@@ -29,40 +30,40 @@ using namespace gtsam;
 TEST( SymbolicConditional, empty )
 {
   SymbolicConditional c0;
-  LONGS_EQUAL(0,c0.nrFrontals())
-  LONGS_EQUAL(0,c0.nrParents())
+  LONGS_EQUAL(0, (long)c0.nrFrontals());
+  LONGS_EQUAL(0, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
 TEST( SymbolicConditional, noParents )
 {
   SymbolicConditional c0(0);
-  LONGS_EQUAL(1,c0.nrFrontals())
-  LONGS_EQUAL(0,c0.nrParents())
+  LONGS_EQUAL(1, (long)c0.nrFrontals());
+  LONGS_EQUAL(0, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
 TEST( SymbolicConditional, oneParents )
 {
   SymbolicConditional c0(0,1);
-  LONGS_EQUAL(1,c0.nrFrontals())
-  LONGS_EQUAL(1,c0.nrParents())
+  LONGS_EQUAL(1, (long)c0.nrFrontals());
+  LONGS_EQUAL(1, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
 TEST( SymbolicConditional, twoParents )
 {
   SymbolicConditional c0(0,1,2);
-  LONGS_EQUAL(1,c0.nrFrontals())
-  LONGS_EQUAL(2,c0.nrParents())
+  LONGS_EQUAL(1, (long)c0.nrFrontals());
+  LONGS_EQUAL(2, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
 TEST( SymbolicConditional, threeParents )
 {
   SymbolicConditional c0(0,1,2,3);
-  LONGS_EQUAL(1,c0.nrFrontals())
-  LONGS_EQUAL(3,c0.nrParents())
+  LONGS_EQUAL(1, (long)c0.nrFrontals());
+  LONGS_EQUAL(3, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
@@ -70,8 +71,8 @@ TEST( SymbolicConditional, fourParents )
 {
   SymbolicConditional c0 = SymbolicConditional::FromKeys(
     list_of(0)(1)(2)(3)(4), 1);
-  LONGS_EQUAL(1,c0.nrFrontals())
-  LONGS_EQUAL(4,c0.nrParents())
+  LONGS_EQUAL(1, (long)c0.nrFrontals());
+  LONGS_EQUAL(4, (long)c0.nrParents());
 }
 
 /* ************************************************************************* */
@@ -80,8 +81,24 @@ TEST( SymbolicConditional, FromRange )
   SymbolicConditional::shared_ptr c0 =
     boost::make_shared<SymbolicConditional>(
     SymbolicConditional::FromKeys(list_of(1)(2)(3)(4)(5), 2));
-  LONGS_EQUAL(2,c0->nrFrontals())
-  LONGS_EQUAL(3,c0->nrParents())
+  LONGS_EQUAL(2, (long)c0->nrFrontals());
+  LONGS_EQUAL(3, (long)c0->nrParents());
+}
+
+/* ************************************************************************* */
+TEST(SymbolicConditional, Constructors)
+{
+  SymbolicConditional expected(3, 4);
+
+  SymbolicConditional actual1 = SymbolicConditional::FromKeys(expected.keys(), 1);
+  SymbolicConditional actual2 = SymbolicConditional::FromIterators(expected.begin(), expected.end(), 1);
+  SymbolicConditional actual3 = *SymbolicConditional::FromKeysShared(expected.keys(), 1);
+  SymbolicConditional actual4 = *SymbolicConditional::FromIteratorsShared(expected.begin(), expected.end(), 1);
+
+  EXPECT(assert_equal(expected, actual1));
+  EXPECT(assert_equal(expected, actual2));
+  EXPECT(assert_equal(expected, actual3));
+  EXPECT(assert_equal(expected, actual4));
 }
 
 /* ************************************************************************* */

@@ -23,19 +23,13 @@ file(RELATIVE_PATH relative_path "${PROJECT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE
 set_target_properties(wrap_lib wrap PROPERTIES FOLDER "${relative_path}")
 
 # Install wrap binary and export target
-if (GTSAM_INSTALL_WRAP)
-    install(TARGETS wrap EXPORT GTSAM-exports DESTINATION bin)
-    list(APPEND GTSAM_EXPORTED_TARGETS wrap)
-    set(GTSAM_EXPORTED_TARGETS "${GTSAM_EXPORTED_TARGETS}" PARENT_SCOPE)
-endif(GTSAM_INSTALL_WRAP)
+install(TARGETS wrap EXPORT GTSAM-exports DESTINATION bin)
+list(APPEND GTSAM_EXPORTED_TARGETS wrap)
+set(GTSAM_EXPORTED_TARGETS "${GTSAM_EXPORTED_TARGETS}" PARENT_SCOPE)
 
 # Install matlab header
 install(FILES matlab.h DESTINATION include/wrap)
 
 # Build tests
-if (GTSAM_BUILD_TESTS)
-    set(wrap_local_libs wrap_lib ${WRAP_BOOST_LIBRARIES}) 
-    gtsam_add_subdir_tests("wrap" "${wrap_local_libs}" "${wrap_local_libs}" "") 
-endif(GTSAM_BUILD_TESTS)
-
+add_subdirectory(tests)
 

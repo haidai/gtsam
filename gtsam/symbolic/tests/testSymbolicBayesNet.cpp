@@ -31,7 +31,6 @@ static const Key _A_ = 1;
 static const Key _B_ = 2;
 static const Key _C_ = 3;
 static const Key _D_ = 4;
-static const Key _E_ = 5;
 
 static SymbolicConditional::shared_ptr
   B(new SymbolicConditional(_B_)),
@@ -82,7 +81,7 @@ TEST( SymbolicBayesNet, combine )
 TEST(SymbolicBayesNet, saveGraph) {
   SymbolicBayesNet bn;
   bn += SymbolicConditional(_A_, _B_);
-  std::vector<Index> keys;
+  std::vector<Key> keys;
   keys.push_back(_B_);
   keys.push_back(_C_);
   keys.push_back(_D_);

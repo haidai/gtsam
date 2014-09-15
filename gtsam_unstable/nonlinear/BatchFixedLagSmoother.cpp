@@ -112,7 +112,7 @@ FixedLagSmoother::Result BatchFixedLagSmoother::update(const NonlinearFactorGrap
 /* ************************************************************************* */
 void BatchFixedLagSmoother::insertFactors(const NonlinearFactorGraph& newFactors) {
   BOOST_FOREACH(const NonlinearFactor::shared_ptr& factor, newFactors) {
-    Index index;
+    Key index;
     // Insert the factor into an existing hole in the factor graph, if possible
     if(availableSlots_.size() > 0) {
       index = availableSlots_.front();
@@ -371,9 +371,7 @@ void BatchFixedLagSmoother::marginalize(const std::set<Key>& marginalizeKeys) {
   VariableIndex variableIndex(factors_);
   BOOST_FOREACH(Key key, marginalizeKeys) {
     const FastList<size_t>& slots = variableIndex[key];
-    BOOST_FOREACH(size_t slot, slots) {
-      removedFactorSlots.insert(slot);
-    }
+    removedFactorSlots.insert(slots.begin(), slots.end());
   }
 
   if(debug) {

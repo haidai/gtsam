@@ -126,7 +126,7 @@ public:
 
   /// return calibration matrix K
   Matrix K() const {
-    return Matrix_(3, 3, fx_, s_, u0_, 0.0, fy_, v0_, 0.0, 0.0, 1.0);
+    return (Matrix(3, 3) <<  fx_, s_, u0_, 0.0, fy_, v0_, 0.0, 0.0, 1.0);
   }
 
   /** @deprecated The following function has been deprecated, use K above */
@@ -137,7 +137,7 @@ public:
   /// return inverted calibration matrix inv(K)
   Matrix matrix_inverse() const {
     const double fxy = fx_ * fy_, sv0 = s_ * v0_, fyu0 = fy_ * u0_;
-    return Matrix_(3, 3, 1.0 / fx_, -s_ / fxy, (sv0 - fyu0) / fxy, 0.0,
+    return (Matrix(3, 3) << 1.0 / fx_, -s_ / fxy, (sv0 - fyu0) / fxy, 0.0,
         1.0 / fy_, -v0_ / fy_, 0.0, 0.0, 1.0);
   }
 
@@ -157,6 +157,23 @@ public:
    * @return point in intrinsic coordinates
    */
   Point2 calibrate(const Point2& p) const;
+
+  /**
+   * convert homogeneous image coordinates to intrinsic coordinates
+   * @param p point in image coordinates
+   * @return point in intrinsic coordinates
+   */
+  Vector3 calibrate(const Vector3& p) const;
+
+  /// "Between", subtracts calibrations. between(p,q) == compose(inverse(p),q)
+  inline Cal3_S2 between(const Cal3_S2& q,
+      boost::optional<Matrix&> H1=boost::none,
+      boost::optional<Matrix&> H2=boost::none) const {
+    if(H1) *H1 = -eye(5);
+    if(H2) *H2 = eye(5);
+    return Cal3_S2(q.fx_-fx_, q.fy_-fy_, q.s_-s_, q.u0_-u0_, q.v0_-v0_);
+  }
+
 
   /// @}
   /// @name Manifold
@@ -179,7 +196,7 @@ public:
 
   /// Unretraction for the calibration
   Vector localCoordinates(const Cal3_S2& T2) const {
-    return vector() - T2.vector();
+    return T2.vector() - vector();
   }
 
   /// @}

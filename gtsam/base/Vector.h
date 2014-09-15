@@ -25,7 +25,6 @@
 #include <iostream>
 #include <gtsam/global_includes.h>
 #include <gtsam/3rdparty/gtsam_eigen_includes.h>
-#include <gtsam/base/SpecialCommaInitializer.h>
 
 namespace gtsam {
 
@@ -46,22 +45,6 @@ typedef Eigen::VectorBlock<const Vector> ConstSubVector;
  * An auxiliary function to printf for Win32 compatibility, added by Kai
  */
 GTSAM_EXPORT void odprintf(const char *format, ...);
-
-/**
- *  constructor with size and initial data, row order !
- */
-GTSAM_EXPORT Vector Vector_( size_t m, const double* const data);
-
-/**
- *  nice constructor, dangerous as number of arguments must be exactly right
- *  and you have to pass doubles !!! always use 0.0 never 0
- */
-GTSAM_EXPORT Vector Vector_(size_t m, ...);
-
-/**
- * Create a numeric vector from an STL vector of doubles
- */
-GTSAM_EXPORT Vector Vector_(const std::vector<double>& data);
 
 /**
  * Create vector initialized to a constant value

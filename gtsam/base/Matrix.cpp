@@ -37,38 +37,6 @@ using namespace std;
 namespace gtsam {
 
 /* ************************************************************************* */
-Matrix Matrix_( size_t m, size_t n, const double* const data) {
-  MatrixRowMajor A(m,n);
-  copy(data, data+m*n, A.data());
-  return Matrix(A);
-}
-
-/* ************************************************************************* */
-Matrix Matrix_( size_t m, size_t n, const Vector& v)
-{
-  Matrix A(m,n);
-  // column-wise copy
-  for( size_t j = 0, k=0  ; j < n ; j++)
-    for( size_t i = 0; i < m ; i++,k++)
-      A(i,j) = v(k);
-  return A;
-}
-
-/* ************************************************************************* */
-Matrix Matrix_(size_t m, size_t n, ...) {
-  Matrix A(m,n);
-  va_list ap;
-  va_start(ap, n);
-  for( size_t i = 0 ; i < m ; i++)
-    for( size_t j = 0 ; j < n ; j++) {
-      double value = va_arg(ap, double);
-      A(i,j) = value;
-    }
-  va_end(ap);
-  return A;
-}
-
-/* ************************************************************************* */
 Matrix zeros( size_t m, size_t n ) {
   return Matrix::Zero(m,n);
 }
@@ -209,17 +177,6 @@ void transposeMultiplyAdd(const Matrix& A, const Vector& e, Vector& x) {
 /* ************************************************************************* */
 void transposeMultiplyAdd(double alpha, const Matrix& A, const Vector& e, SubVector x) {
   x += alpha * A.transpose() * e;
-}
-
-/* ************************************************************************* */
-Vector Vector_(const Matrix& A)
-{
-  size_t m = A.rows(), n = A.cols();
-  Vector v(m*n);
-  for( size_t j = 0, k=0  ; j < n ; j++)
-    for( size_t i = 0; i < m ; i++,k++)
-      v(k) = A(i,j);
-  return v;
 }
 
 /* ************************************************************************* */
@@ -634,41 +591,17 @@ Matrix3 skewSymmetric(double wx, double wy, double wz)
 }
 
 /* ************************************************************************* */
-/** Numerical Recipes in C wrappers                                          
- *  create Numerical Recipes in C structure
- * pointers are subtracted by one to provide base 1 access 
- */
-/* ************************************************************************* */
-// FIXME: assumes row major, rather than column major
-//double** createNRC(Matrix& A) {
-//  const size_t m=A.rows();
-//  double** a = new double* [m];
-//  for(size_t i = 0; i < m; i++)
-//    a[i] = &A(i,0)-1;
-//  return a;
-//}
-
-/* ******************************************
- * 
- * Modified from Justin's codebase
- *
- *  Idea came from other public domain code.  Takes a S.P.D. matrix
- *  and computes the LL^t decomposition.  returns L, which is lower
- *  triangular.  Note this is the opposite convention from Matlab,
- *  which calculates Q'Q where Q is upper triangular.
- *
- * ******************************************/
 Matrix LLt(const Matrix& A)
 {
-  Matrix L = zeros(A.rows(), A.rows());
-  Eigen::LLT<Matrix> llt;
-  llt.compute(A);
+  Eigen::LLT<Matrix> llt(A);
   return llt.matrixL();
 }
 
+/* ************************************************************************* */
 Matrix RtR(const Matrix &A)
 {
-  return LLt(A).transpose();
+  Eigen::LLT<Matrix> llt(A);
+  return llt.matrixU();
 }
 
 /*
@@ -676,46 +609,21 @@ Matrix RtR(const Matrix &A)
  */
 Matrix cholesky_inverse(const Matrix &A)
 {
-  // FIXME: replace with real algorithm
-  return A.inverse();
-
-//  Matrix L = LLt(A);
-//  Matrix inv(eye(A.rows()));
-//  inplace_solve (L, inv, BNU::lower_tag ());
-//  return BNU::prod(trans(inv), inv);
+  Eigen::LLT<Matrix> llt(A);
+  Matrix inv = eye(A.rows());
+  llt.matrixU().solveInPlace<Eigen::OnTheRight>(inv);
+  return inv*inv.transpose();
 }
 
-#if 0
 /* ************************************************************************* */
-// TODO, would be faster with Cholesky
-Matrix inverse_square_root(const Matrix& A) {
-  size_t m = A.cols(), n = A.rows();
-  if (m!=n)
-    throw invalid_argument("inverse_square_root: A must be square");
-
-  // Perform SVD, TODO: symmetric SVD?
-  Matrix U,V;
-  Vector S;
-  svd(A,U,S,V);
-
-  // invert and sqrt diagonal of S
-  // We also arbitrarily choose sign to make result have positive signs
-  for(size_t i = 0; i<m; i++) S(i) = - pow(S(i),-0.5);
-  return vector_scale(S, V); // V*S;
-}
-#endif
-
-/* ************************************************************************* */
-// New, improved, with 100% more Cholesky goodness!
-//
 // Semantics: 
 // if B = inverse_square_root(A), then all of the following are true:
 // inv(B) * inv(B)' == A
 // inv(B' * B) == A
 Matrix inverse_square_root(const Matrix& A) {
-  Matrix R = RtR(A);
+  Eigen::LLT<Matrix> llt(A);
   Matrix inv = eye(A.rows());
-  R.triangularView<Eigen::Upper>().solveInPlace<Eigen::OnTheRight>(inv);
+  llt.matrixU().solveInPlace<Eigen::OnTheRight>(inv);
   return inv.transpose();
 }
 
