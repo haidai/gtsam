@@ -36,7 +36,6 @@ function(wrap_python TARGET_NAME PYTHON_MODULE_DIRECTORY)
     ENDIF()
   ENDIF(APPLE)
 
-
   # Create a static library version
   add_library(${TARGET_NAME} SHARED ${ARGN})
 
@@ -46,6 +45,19 @@ function(wrap_python TARGET_NAME PYTHON_MODULE_DIRECTORY)
           CLEAN_DIRECT_OUTPUT 1
           VERSION             1
           SOVERSION           0)
+
+
+
+  if(MSVC)
+    # For Visual Studio, export symbols properly 
+    include(GenerateExportHeader)
+    GENERATE_EXPORT_HEADER(${TARGET_NAME}
+                           BASE_NAME ${TARGET_NAME}
+                           EXPORT_MACRO_NAME ${TARGET_NAME}_EXPORT
+                           EXPORT_FILE_NAME ${TARGET_NAME}_Export.h
+                           STATIC_DEFINE ${TARGET_NAME}_BUILD_AS_STATIC)
+  ENDIF(MSVC)
+
 
 
   # On OSX and Linux, the python library must end in the extension .so. Build this
