@@ -13,8 +13,8 @@ function(wrap_python TARGET_NAME PYTHON_MODULE_DIRECTORY)
   include_directories(${Boost_INCLUDE_DIRS})
 
   # Find Python
-  FIND_PACKAGE(PythonLibs 2.7 REQUIRED)
-  INCLUDE_DIRECTORIES(${PYTHON_INCLUDE_DIRS})
+  find_package(PythonLibs 2.7 REQUIRED)
+  include_directories(${PYTHON_INCLUDE_DIRS})
 
   IF(APPLE)
     # The apple framework headers don't include the numpy headers for some reason.
