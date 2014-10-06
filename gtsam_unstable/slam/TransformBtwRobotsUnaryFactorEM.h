@@ -77,7 +77,7 @@ namespace gtsam {
 
     /** Constructor */
     TransformBtwRobotsUnaryFactorEM(Key key, const VALUE& measured, Key keyA, Key keyB,
-        const gtsam::Values valA, const gtsam::Values valB,
+        const gtsam::Values& valA, const gtsam::Values& valB,
         const SharedGaussian& model_inlier, const SharedGaussian& model_outlier,
         const double prior_inlier, const double prior_outlier,
         const bool flag_bump_up_near_zero_probs = false,
@@ -132,7 +132,7 @@ namespace gtsam {
     /** implement functions needed to derive from Factor */
 
     /* ************************************************************************* */
-    void setValAValB(const gtsam::Values valA, const gtsam::Values valB){
+    void setValAValB(const gtsam::Values& valA, const gtsam::Values& valB){
       if ( (!valA.exists(keyA_)) && (!valB.exists(keyA_)) && (!valA.exists(keyB_)) && (!valB.exists(keyB_)) )
         throw("something is wrong!");
 
@@ -198,7 +198,7 @@ namespace gtsam {
       Vector err = currA_T_currB_msr.localCoordinates(currA_T_currB_pred);
 
       // Calculate indicator probabilities (inlier and outlier)
-      Vector p_inlier_outlier = calcIndicatorProb(x);
+      Vector p_inlier_outlier = calcIndicatorProb(x, err);
       double p_inlier  = p_inlier_outlier[0];
       double p_outlier = p_inlier_outlier[1];
 
@@ -247,6 +247,12 @@ namespace gtsam {
     gtsam::Vector calcIndicatorProb(const gtsam::Values& x) const {
 
       Vector err =  unwhitenedError(x);
+
+      return this->calcIndicatorProb(x, err);
+    }
+
+    /* ************************************************************************* */
+    gtsam::Vector calcIndicatorProb(const gtsam::Values& x, const gtsam::Vector& err) const {
 
       // Calculate indicator probabilities (inlier and outlier)
       Vector err_wh_inlier  = model_inlier_->whiten(err);
