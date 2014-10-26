@@ -26,6 +26,7 @@
 
 #include <boost/foreach.hpp>
 #include <boost/tuple/tuple.hpp>
+#include <boost/unordered/unordered_map.hpp>
 
 // template meta-programming headers
 #include <boost/mpl/vector.hpp>
@@ -48,7 +49,7 @@ namespace gtsam {
 template<typename T>
 class Expression;
 
-typedef std::map<Key, Eigen::Block<Matrix> > JacobianMap;
+typedef  boost::unordered_map<Key, Eigen::Block<Matrix> > JacobianMap;
 
 //-----------------------------------------------------------------------------
 /**
