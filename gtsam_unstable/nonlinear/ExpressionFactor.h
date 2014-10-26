@@ -87,6 +87,7 @@ public:
 
       // Create and zero out blocks to be passed to expression_
       JacobianMap blocks;
+      blocks.rehash(ceil( size() / blocks.max_load_factor())); // Reserve space
       for (DenseIndex i = 0; i < size(); i++) {
         Matrix& Hi = H->at(i);
         Hi.resize(Dim, dimensions_[i]);
@@ -121,6 +122,7 @@ public:
 
     // Create blocks into Ab_ to be passed to expression_
     JacobianMap blocks;
+    blocks.rehash(ceil( size() / blocks.max_load_factor())); // Reserve space
     for (DenseIndex i = 0; i < size(); i++)
       blocks.insert(std::make_pair(keys_[i], Ab(i)));
 
