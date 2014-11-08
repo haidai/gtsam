@@ -36,34 +36,31 @@ function(wrap_python TARGET_NAME PYTHON_MODULE_DIRECTORY)
     ENDIF()
   ENDIF(APPLE)
 
-  # Create a static library version
-  add_library(${TARGET_NAME} SHARED ${ARGN})
-
-  target_link_libraries(${TARGET_NAME} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} gtsamDebug) #temp
-      set_target_properties(${TARGET_NAME} PROPERTIES 
-          OUTPUT_NAME         ${TARGET_NAME}
-          CLEAN_DIRECT_OUTPUT 1
-          VERSION             1
-          SOVERSION           0)
-
-
-
   if(MSVC)
-    # For Visual Studio, export symbols properly 
-    # Note: Requires cmake 2.8.6 http://www.cmake.org/Wiki/BuildingWinDLL
-    include(GenerateExportHeader)
-    GENERATE_EXPORT_HEADER(${TARGET_NAME}
-                           BASE_NAME ${TARGET_NAME}
-                           EXPORT_MACRO_NAME ${TARGET_NAME}_EXPORT
-                           EXPORT_FILE_NAME ${TARGET_NAME}_Export.h
-                           STATIC_DEFINE ${TARGET_NAME}_BUILD_AS_STATIC)
+    add_library(${TARGET_NAME} MODULE ${ARGN})
+    set_target_properties(${TARGET_NAME} PROPERTIES 
+        OUTPUT_NAME         ${TARGET_NAME}
+        CLEAN_DIRECT_OUTPUT 1
+        VERSION             1
+        SOVERSION           0
+        SUFFIX              ".pyd")
+    target_link_libraries(${TARGET_NAME} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} gtsamDebug) #temp
 
     set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${TARGET_NAME}>)
     message(${PYLIB_OUTPUT_FILE})
     get_filename_component(PYLIB_OUTPUT_NAME ${PYLIB_OUTPUT_FILE} NAME_WE)
-    set(PYLIB_SO_NAME ${PYLIB_OUTPUT_NAME}.dll)
+    #set(PYLIB_SO_NAME ${PYLIB_OUTPUT_NAME}.pyd)
 
   ELSE()
+    # Create a shared library
+    add_library(${TARGET_NAME} SHARED ${ARGN})
+
+    set_target_properties(${TARGET_NAME} PROPERTIES 
+        OUTPUT_NAME         ${TARGET_NAME}
+        CLEAN_DIRECT_OUTPUT 1
+        VERSION             1
+        SOVERSION           0)
+    target_link_libraries(${TARGET_NAME} ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} gtsamDebug) #temp
     # On OSX and Linux, the python library must end in the extension .so. Build this
     # filename here.
     #get_property(PYLIB_OUTPUT_FILE TARGET ${TARGET_NAME} PROPERTY LOCATION)
