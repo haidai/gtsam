@@ -20,6 +20,7 @@
 
 #pragma once
 
+#warning "Vector.h is deprecated. Please use Eigen instead."
 #include <list>
 #include <vector>
 #include <iostream>

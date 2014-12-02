@@ -22,6 +22,7 @@
 
 #pragma once
 
+#warning "Matrix.h is deprecated. Please use Eigen instead."
 #include <gtsam/base/Vector.h>
 #include <boost/format.hpp>
 #include <boost/tuple/tuple.hpp>
