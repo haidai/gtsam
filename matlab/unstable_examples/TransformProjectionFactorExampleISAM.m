@@ -96,7 +96,7 @@ for i=1:20
     end
     
     % generate some camera measurements
-    cam_pose = initial.at(i).compose(actual_transform);
+    cam_pose = initial.atPose2(i).compose(actual_transform);
 %     gtsam.plotPose3(cam_pose);
     cam = SimpleCamera(cam_pose,K);
     i
@@ -143,10 +143,10 @@ for i=1:20
 %     axis equal
     
     for l=101:100+nrPoints
-        plotPoint3(result.at(l),'g');
+        plotPoint3(result.atPose2(l),'g');
     end
     
-    ty = result.at(1000).translation().y();
+    ty = result.atPose2(1000).translation().y();
     text(5,5,5,sprintf('Y-Transform: %0.2g',ty));
   
     if(write_video)
@@ -168,7 +168,7 @@ fprintf('Cheirality Exception count: %d\n', cheirality_exception_count);
 
 
 disp('Transform after optimization');
-result.at(1000)
+result.atPose2(1000)
 
 
 

@@ -71,7 +71,7 @@ for i=1:20
     end
     
     % generate some camera measurements
-    cam_pose = initial.at(i).compose(actual_transform);
+    cam_pose = initial.atPose2(i).compose(actual_transform);
     gtsam.plotPose3(cam_pose);
     cam = SimpleCamera(cam_pose,K);
     i
@@ -93,7 +93,7 @@ fprintf('Cheirality Exception count: %d\n', cheirality_exception_count);
 
 %% camera plotting
 for i=1:20
-   gtsam.plotPose3(initial.at(i).compose(camera_transform));
+   gtsam.plotPose3(initial.atPose2(i).compose(camera_transform));
 end
 
 xlabel('x (m)');

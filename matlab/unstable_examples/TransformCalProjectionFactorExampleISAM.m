@@ -106,7 +106,7 @@ for i=1:20
     end
     
     % generate some camera measurements
-    cam_pose = initial.at(i).compose(actual_transform);
+    cam_pose = initial.atPose2(i).compose(actual_transform);
 %     gtsam.plotPose3(cam_pose);
     cam = SimpleCamera(cam_pose,K);
     i
@@ -137,10 +137,10 @@ for i=1:20
     hold on;
     
     %% plot results
-    result_camera_transform = result.at(transformKey);
+    result_camera_transform = result.atPose2(transformKey);
     for j=1:i
-      gtsam.plotPose3(result.at(j),[],0.5);
-      gtsam.plotPose3(result.at(j).compose(result_camera_transform),[],0.5);
+      gtsam.plotPose3(result.atPose3(j),[],0.5);
+      gtsam.plotPose3(result.atPose3(j).compose(result_camera_transform),[],0.5);
     end
     
     xlabel('x (m)');
@@ -153,10 +153,10 @@ for i=1:20
 %     axis equal
     
     for l=101:100+nrPoints
-        plotPoint3(result.at(l),'g');
+        plotPoint3(result.atPose3(l),'g');
     end
     
-    ty = result.at(transformKey).translation().y();
+    ty = result.atPose3(transformKey).translation().y();
     fx = result.at(calibrationKey).fx();
     fy = result.at(calibrationKey).fy();
     text(1,5,5,sprintf('Y-Transform(0.0): %0.2f',ty));
