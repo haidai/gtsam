@@ -7,19 +7,11 @@
 
 #pragma once
 
-#include <gtsam_unstable/nonlinear/Expression.h>
+#include <gtsam_unstable/nonlinear/expressions.h>
 #include <gtsam/geometry/Cal3_S2.h>
 #include <gtsam/geometry/PinholeCamera.h>
-#include <boost/bind.hpp>
 
 namespace gtsam {
-
-// Generics
-
-template<class T>
-Expression<T> between(const Expression<T>& t1, const Expression<T>& t2) {
-  return Expression<T>(t1, &T::between, t2);
-}
 
 // 2D Geometry
 
@@ -50,8 +42,7 @@ Point2_ project(const Point3_& p_cam) {
 }
 
 Point2 project6(const Pose3& x, const Point3& p, const Cal3_S2& K,
-    boost::optional<Matrix26&> Dpose, boost::optional<Matrix23&> Dpoint,
-    boost::optional<Matrix25&> Dcal) {
+    OptionalJacobian<2, 6> Dpose, OptionalJacobian<2, 3> Dpoint, OptionalJacobian<2, 5> Dcal) {
   return PinholeCamera<Cal3_S2>(x, K).project(p, Dpose, Dpoint, Dcal);
 }
 

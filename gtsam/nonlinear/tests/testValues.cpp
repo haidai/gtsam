@@ -12,6 +12,8 @@
 /**
  * @file testValues.cpp
  * @author Richard Roberts
+ * @author Frank Dellaert
+ * @author Mike Bosse
  */
 
 #include <gtsam/nonlinear/Values.h>
@@ -168,9 +170,9 @@ TEST(Values, basic_functions)
   Values values;
   const Values& values_c = values;
   values.insert(2, Vector3());
-  values.insert(4, Vector3());
-  values.insert(6, Vector3());
-  values.insert(8, Vector3());
+  values.insert(4, Vector(3));
+  values.insert(6, Matrix23());
+  values.insert(8, Matrix(2,3));
 
   // find
   EXPECT_LONGS_EQUAL(4, values.find(4)->key);
@@ -194,7 +196,7 @@ TEST(Values, basic_functions)
 //TEST(Values, dim_zero)
 //{
 //  Values config0;
-//  config0.insert(key1, Vector2((Vector(2) << 2.0, 3.0));
+//  config0.insert(key1, Vector2(Vector2(2.0, 3.0));
 //  config0.insert(key2, Vector3(5.0, 6.0, 7.0));
 //  LONGS_EQUAL(5, config0.dim());
 //
@@ -212,8 +214,8 @@ TEST(Values, expmap_a)
   config0.insert(key2, Vector3(5.0, 6.0, 7.0));
 
   VectorValues increment = pair_list_of<Key, Vector>
-    (key1, (Vector(3) << 1.0, 1.1, 1.2))
-    (key2, (Vector(3) << 1.3, 1.4, 1.5));
+    (key1, Vector3(1.0, 1.1, 1.2))
+    (key2, Vector3(1.3, 1.4, 1.5));
 
   Values expected;
   expected.insert(key1, Vector3(2.0, 3.1, 4.2));
@@ -230,7 +232,7 @@ TEST(Values, expmap_b)
   config0.insert(key2, Vector3(5.0, 6.0, 7.0));
 
   VectorValues increment = pair_list_of<Key, Vector>
-    (key2, (Vector(3) << 1.3, 1.4, 1.5));
+    (key2, Vector3(1.3, 1.4, 1.5));
 
   Values expected;
   expected.insert(key1, Vector3(1.0, 2.0, 3.0));
@@ -283,8 +285,8 @@ TEST(Values, localCoordinates)
   valuesA.insert(key2, Vector3(5.0, 6.0, 7.0));
 
   VectorValues expDelta = pair_list_of<Key, Vector>
-    (key1, (Vector(3) << 0.1, 0.2, 0.3))
-    (key2, (Vector(3) << 0.4, 0.5, 0.6));
+    (key1, Vector3(0.1, 0.2, 0.3))
+    (key2, Vector3(0.4, 0.5, 0.6));
 
   Values valuesB = valuesA.retract(expDelta);
 
@@ -383,6 +385,12 @@ TEST(Values, filter) {
   expectedSubValues1.insert(3, pose3);
   EXPECT(assert_equal(expectedSubValues1, actualSubValues1));
 
+  // ConstFilter by Key
+  Values::ConstFiltered<Value> constfiltered = values.filter(boost::bind(std::greater_equal<Key>(), _1, 2));
+  EXPECT_LONGS_EQUAL(2, (long)constfiltered.size());
+  Values fromconstfiltered(constfiltered);
+  EXPECT(assert_equal(expectedSubValues1, fromconstfiltered));
+
   // Filter by type
   i = 0;
   Values::ConstFiltered<Pose3> pose_filtered = values.filter<Pose3>();
@@ -462,6 +470,15 @@ TEST(Values, Destructors) {
   LONGS_EQUAL(4+2, (long)TestValueData::DestructorCount);
 }
 
+/* ************************************************************************* */
+TEST(Values, FixedSize) {
+  Values values;
+  Vector v(3); v << 5.0, 6.0, 7.0;
+  values.insertFixed(key1, v, 3);
+  Vector3 expected(5.0, 6.0, 7.0);
+  CHECK(assert_equal((Vector)expected, values.at<Vector3>(key1)));
+  CHECK_EXCEPTION(values.insertFixed(key1, v, 12),runtime_error);
+}
 /* ************************************************************************* */
 int main() { TestResult tr; return TestRegistry::runAllTests(tr); }
 /* ************************************************************************* */

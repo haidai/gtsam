@@ -30,6 +30,9 @@
 
 #include <gtsam/base/Matrix.h>
 #include <gtsam/base/Manifold.h>
+#include <gtsam/linear/VectorValues.h>
+#include <gtsam/linear/JacobianFactor.h>
+#include <gtsam/nonlinear/Values.h>
 
 namespace gtsam {
 
@@ -516,4 +519,6 @@ inline Matrix numericalHessian323(double (*f)(const X1&, const X2&, const X3&),
       boost::function<double(const X1&, const X2&, const X3&)>(f), x1, x2, x3,
       delta);
 }
-}
+
+} // namespace gtsam
+

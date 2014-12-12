@@ -19,11 +19,10 @@
 
 #include <gtsam_unstable/slam/expressions.h>
 #include <gtsam_unstable/nonlinear/ExpressionFactor.h>
+#include <gtsam_unstable/nonlinear/expressionTesting.h>
 #include <gtsam/slam/GeneralSFMFactor.h>
 #include <gtsam/slam/ProjectionFactor.h>
 #include <gtsam/slam/PriorFactor.h>
-#include <gtsam/geometry/Pose3.h>
-#include <gtsam/geometry/Cal3_S2.h>
 #include <gtsam/base/Testable.h>
 
 #include <CppUnitLite/TestHarness.h>
@@ -77,10 +76,13 @@ TEST(ExpressionFactor, Model) {
 
   // Concise version
   ExpressionFactor<Point2> f(model, Point2(0, 0), p);
+
+  // Check values and derivatives
   EXPECT_DOUBLES_EQUAL(old.error(values), f.error(values), 1e-9);
   EXPECT_LONGS_EQUAL(2, f.dim());
   boost::shared_ptr<GaussianFactor> gf2 = f.linearize(values);
   EXPECT( assert_equal(*old.linearize(values), *gf2, 1e-9));
+  EXPECT_CORRECT_FACTOR_JACOBIANS(f, values, 1e-5, 1e-5); // another way
 }
 
 /* ************************************************************************* */
@@ -110,8 +112,8 @@ TEST(ExpressionFactor, Unary) {
   values.insert(2, Point3(0, 0, 1));
 
   JacobianFactor expected( //
-      2, (Matrix(2, 3) << 1, 0, 0, 0, 1, 0), //
-      (Vector(2) << -17, 30));
+      2, (Matrix(2, 3) << 1, 0, 0, 0, 1, 0).finished(), //
+      Vector2(-17, 30));
 
   // Create leaves
   Point3_ p(2);
@@ -126,8 +128,40 @@ TEST(ExpressionFactor, Unary) {
 }
 
 /* ************************************************************************* */
+// Unary(Leaf)) and Unary(Unary(Leaf)))
+// wide version (not handled in fixed-size pipeline)
+typedef Eigen::Matrix<double,9,3> Matrix93;
+Vector9 wide(const Point3& p, OptionalJacobian<9,3> H) {
+  Vector9 v;
+  v << p.vector(), p.vector(), p.vector();
+  if (H) *H << eye(3), eye(3), eye(3);
+  return v;
+}
+typedef Eigen::Matrix<double,9,9> Matrix9;
+Vector9 id9(const Vector9& v, OptionalJacobian<9,9> H) {
+  if (H) *H = Matrix9::Identity();
+  return v;
+}
+TEST(ExpressionFactor, Wide) {
+  // Create some values
+  Values values;
+  values.insert(2, Point3(0, 0, 1));
+  Point3_ point(2);
+  Vector9 measured;
+  Expression<Vector9> expression(wide,point);
+  SharedNoiseModel model = noiseModel::Unit::Create(9);
+
+  ExpressionFactor<Vector9> f1(model, measured, expression);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(f1, values, 1e-5, 1e-9);
+
+  Expression<Vector9> expression2(id9,expression);
+  ExpressionFactor<Vector9> f2(model, measured, expression2);
+  EXPECT_CORRECT_FACTOR_JACOBIANS(f2, values, 1e-5, 1e-9);
+}
+
+/* ************************************************************************* */
 static Point2 myUncal(const Cal3_S2& K, const Point2& p,
-    boost::optional<Matrix25&> Dcal, boost::optional<Matrix2&> Dp) {
+    OptionalJacobian<2,5> Dcal, OptionalJacobian<2,2> Dp) {
   return K.uncalibrate(p, Dcal, Dp);
 }
 
@@ -162,9 +196,9 @@ TEST(ExpressionFactor, Binary) {
   EXPECT_LONGS_EQUAL(expectedRecordSize + 8, size);
   // Use Variable Length Array, allocated on stack by gcc
   // Note unclear for Clang: http://clang.llvm.org/compatibility.html#vla
-  char raw[size];
+  ExecutionTraceStorage traceStorage[size];
   ExecutionTrace<Point2> trace;
-  Point2 value = binary.traceExecution(values, trace, raw);
+  Point2 value = binary.traceExecution(values, trace, traceStorage);
   EXPECT(assert_equal(Point2(),value, 1e-9));
   // trace.print();
 
@@ -203,6 +237,17 @@ TEST(ExpressionFactor, Shallow) {
   // Construct expression, concise evrsion
   Point2_ expression = project(transform_to(x_, p_));
 
+  // Get and check keys and dims
+  FastVector<Key> keys;
+  FastVector<int> dims;
+  boost::tie(keys, dims) = expression.keysAndDims();
+  LONGS_EQUAL(2,keys.size());
+  LONGS_EQUAL(2,dims.size());
+  LONGS_EQUAL(1,keys[0]);
+  LONGS_EQUAL(2,keys[1]);
+  LONGS_EQUAL(6,dims[0]);
+  LONGS_EQUAL(3,dims[1]);
+
   // traceExecution of shallow tree
   typedef UnaryExpression<Point2, Point3> Unary;
   typedef BinaryExpression<Point3, Pose3, Point3> Binary;
@@ -218,9 +263,9 @@ TEST(ExpressionFactor, Shallow) {
   size_t size = expression.traceSize();
   CHECK(size);
   EXPECT_LONGS_EQUAL(expectedTraceSize, size);
-  char raw[size];
+  ExecutionTraceStorage traceStorage[size];
   ExecutionTrace<Point2> trace;
-  Point2 value = expression.traceExecution(values, trace, raw);
+  Point2 value = expression.traceExecution(values, trace, traceStorage);
   EXPECT(assert_equal(Point2(),value, 1e-9));
   // trace.print();
 
@@ -382,8 +427,7 @@ TEST(ExpressionFactor, compose3) {
 /* ************************************************************************* */
 // Test compose with three arguments
 Rot3 composeThree(const Rot3& R1, const Rot3& R2, const Rot3& R3,
-    boost::optional<Matrix3&> H1, boost::optional<Matrix3&> H2,
-    boost::optional<Matrix3&> H3) {
+    OptionalJacobian<3, 3> H1, OptionalJacobian<3, 3> H2, OptionalJacobian<3, 3> H3) {
   // return dummy derivatives (not correct, but that's ok for testing here)
   if (H1)
     *H1 = eye(3);
@@ -423,6 +467,29 @@ TEST(ExpressionFactor, composeTernary) {
   boost::shared_ptr<JacobianFactor> jf = //
       boost::dynamic_pointer_cast<JacobianFactor>(gf);
   EXPECT( assert_equal(expected, *jf,1e-9));
+}
+
+TEST(ExpressionFactor, tree_finite_differences) {
+
+  // Create some values
+  Values values;
+  values.insert(1, Pose3());
+  values.insert(2, Point3(0, 0, 1));
+  values.insert(3, Cal3_S2());
+
+  // Create leaves
+  Pose3_ x(1);
+  Point3_ p(2);
+  Cal3_S2_ K(3);
+
+  // Create expression tree
+  Point3_ p_cam(x, &Pose3::transform_to, p);
+  Point2_ xy_hat(PinholeCamera<Cal3_S2>::project_to_camera, p_cam);
+  Point2_ uv_hat(K, &Cal3_S2::uncalibrate, xy_hat);
+
+  const double fd_step = 1e-5;
+  const double tolerance = 1e-5;
+  EXPECT_CORRECT_EXPRESSION_JACOBIANS(uv_hat, values, fd_step, tolerance);
 }
 
 /* ************************************************************************* */

@@ -17,6 +17,12 @@
 
 #pragma once
 
+#ifdef _MSC_VER
+#pragma message("LieVector.h is deprecated. Please use Eigen::Vector instead.")
+#else
+#warning "LieVector.h is deprecated. Please use Eigen::Vector instead."
+#endif
+
 #include <gtsam/base/Lie.h>
 #include <gtsam/base/Vector.h>
 #include <gtsam/base/DerivedValue.h>
@@ -24,7 +30,9 @@
 namespace gtsam {
 
 /**
- * LieVector is a wrapper around vector to allow it to be a Lie type
+ * @deprecated: LieScalar, LieVector and LieMatrix are obsolete in GTSAM 4.0 as
+ * we can directly add double, Vector, and Matrix into values now, because of
+ * gtsam::traits.
  */
 struct LieVector : public Vector {
 
@@ -42,7 +50,7 @@ struct LieVector : public Vector {
 #endif
 
   /** wrap a double */
-  LieVector(double d) : Vector((Vector(1) << d)) {}
+  LieVector(double d) : Vector((Vector(1) << d).finished()) {}
 
   /** constructor with size and initial data, row order ! */
   GTSAM_EXPORT LieVector(size_t m, const double* const data);

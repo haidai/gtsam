@@ -20,14 +20,14 @@
 
 #pragma once
 
-#include <boost/serialization/base_object.hpp>
-#include <boost/assign/list_of.hpp>
-
 #include <gtsam/nonlinear/Values.h>
 #include <gtsam/linear/NoiseModel.h>
 #include <gtsam/linear/JacobianFactor.h>
 #include <gtsam/inference/Factor.h>
+#include <gtsam/base/OptionalJacobian.h>
 
+#include <boost/serialization/base_object.hpp>
+#include <boost/assign/list_of.hpp>
 
 /**
  * Macro to add a standard clone function to a derived factor
@@ -49,7 +49,7 @@ using boost::assign::cref_list_of;
  *
  * \nosubgrouping
  */
-class NonlinearFactor: public Factor {
+class GTSAM_EXPORT NonlinearFactor: public Factor {
 
 protected:
 
@@ -155,7 +155,7 @@ public:
 
  * The noise model is typically Gaussian, but robust and constrained error models are also supported.
  */
-class NoiseModelFactor: public NonlinearFactor {
+class GTSAM_EXPORT NoiseModelFactor: public NonlinearFactor {
 
 protected:
 

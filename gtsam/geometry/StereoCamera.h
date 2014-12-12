@@ -90,14 +90,8 @@ public:
   }
 
   /// Local coordinates of manifold neighborhood around current value
-  inline Vector localCoordinates(const StereoCamera& t2) const {
-    return Vector(leftCamPose_.localCoordinates(t2.leftCamPose_));
-  }
-
-  Pose3 between(const StereoCamera &camera,
-      boost::optional<Matrix&> H1=boost::none,
-      boost::optional<Matrix&> H2=boost::none) const {
-    return leftCamPose_.between(camera.pose(), H1, H2);
+  inline Vector6 localCoordinates(const StereoCamera& t2) const {
+    return leftCamPose_.localCoordinates(t2.leftCamPose_);
   }
 
   /// @}
@@ -114,21 +108,18 @@ public:
 
   /*
    * project 3D point and compute optional derivatives
+   * @param H1 derivative with respect to pose
+   * @param H2 derivative with respect to point
+   * @param H3 IGNORED (for calibration)
    */
   StereoPoint2 project(const Point3& point,
-      boost::optional<Matrix&> H1 = boost::none,
-      boost::optional<Matrix&> H2 = boost::none) const;
+      OptionalJacobian<3, 6> H1 = boost::none,
+      OptionalJacobian<3, 3> H2 = boost::none,
+      OptionalJacobian<3, 6> H3 = boost::none) const;
 
-  /*
-   * to accomodate tsam's assumption that K is estimated, too
+  /**
+   *
    */
-  StereoPoint2 project(const Point3& point,
-      boost::optional<Matrix&> H1,
-      boost::optional<Matrix&> H1_k,
-      boost::optional<Matrix&> H2) const {
-    return project(point, H1, H2);
-  }
-
   Point3 backproject(const StereoPoint2& z) const {
     Vector measured = z.vector();
     double Z = K_->baseline()*K_->fx()/(measured[0]-measured[1]);
@@ -142,7 +133,7 @@ public:
 
 private:
   /** utility functions */
-  Matrix Dproject_to_stereo_camera1(const Point3& P) const;
+  Matrix3 Dproject_to_stereo_camera1(const Point3& P) const;
 
   friend class boost::serialization::access;
   template<class Archive>
@@ -157,15 +148,15 @@ private:
 namespace traits {
 
 template<>
-struct is_manifold<StereoCamera> : public boost::true_type {
+struct GTSAM_EXPORT is_manifold<StereoCamera> : public boost::true_type{
 };
 
 template<>
-struct dimension<StereoCamera> : public boost::integral_constant<int, 6> {
+struct GTSAM_EXPORT dimension<StereoCamera> : public boost::integral_constant<int, 6>{
 };
 
 template<>
-struct zero<StereoCamera> {
+struct GTSAM_EXPORT zero<StereoCamera> {
   static StereoCamera value() { return StereoCamera();}
 };
 
