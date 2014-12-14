@@ -441,7 +441,7 @@ void Module::WriteRTTIRegistry(FileWriter& wrapperFile, const std::string& modul
 } 
  
 /* ************************************************************************* */ 
-void Module::python_wrapper(const string& toolboxPath) const {
+void Module::python_code(const string& toolboxPath) const {
 
   fs::create_directories(toolboxPath);
 

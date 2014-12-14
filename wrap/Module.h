@@ -68,7 +68,7 @@ struct Module {
       const std::vector<std::string>& functionNames) const;
 
   /// Python code generation:
-  void python_wrapper(const std::string& path) const;
+  void python_code(const std::string& path) const;
 
 private:
   static std::vector<Class> ExpandTypedefInstantiations(
