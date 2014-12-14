@@ -90,7 +90,7 @@ int main(int argc, const char* argv[]) {
   else {
     try {
       if(argc == 6){
-        if(argv[5] == "python")
+        if(strcmp(argv[5],"python") == 0)
           generate_python_toolbox(argv[1],argv[2],argv[3],argv[4]);
         else
           generate_matlab_toolbox(argv[1],argv[2],argv[3],argv[4]);
