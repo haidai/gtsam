@@ -156,6 +156,37 @@ if (GTSAM_INSTALL_MATLAB_TOOLBOX)
 		list(APPEND mexFlags -DGTSAM_IMPORT_STATIC)
 	endif()
 
-    # Wrap
-    wrap_and_install_library(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "${mexFlags}")
+  # Wrap MATLAB
+  wrap_and_install_matlab(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "${mexFlags}")
 endif ()
+
+if (GTSAM_BUILD_PYTHON)
+
+
+  wrap_and_install_python(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "")
+  #set the default path for built executables to the "bin" directory
+  #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
+  #set the default path for built libraries to the "lib" directory
+  #set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+
+  #list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/../cmake)
+  #include_directories(${EIGEN_INCLUDE_DIRS})
+
+  #file(GLOB base_src "base/*.cpp")
+  #file(GLOB geometry_src "geometry/*.cpp")
+  #file(GLOB inference_src "inference/*.cpp")
+  #file(GLOB linear_src "linear/*.cpp")
+  #file(GLOB nonlinear_src "nonlinear/*.cpp")
+  #file(GLOB slam_src "slam/*.cpp")
+  #file(GLOB symbolic_src "symbolic/*.cpp")
+
+  #wrap_python("base" ${PROJECT_SOURCE_DIR}/python/${PROJECT_NAME} ${base_src})
+  #wrap_python("pygtsam" ${PROJECT_SOURCE_DIR}/python/gtsam exportgtsam.cpp
+  #  ${geometry_src} ${linear_src} ${nonlinear_src} ${slam_src})
+  #wrap_python("nonlinear" ${PROJECT_SOURCE_DIR}/python/gtsam ${nonlinear_src})
+  #wrap_python("slam" ${PROJECT_SOURCE_DIR}/python/gtsam ${slam_src})
+  #add_python_export_library(${PROJECT_NAME}_test ${PROJECT_SOURCE_DIR}/python/${PROJECT_NAME}
+  #  ${AUTOGEN_TEST_FILES}
+  #)
+  message('BUILDING PYTHON WRAPPER')
+endif()
