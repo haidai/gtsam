@@ -72,7 +72,7 @@ void usage() {
   cerr << "  moduleName    : the name of the module, interface file must be called moduleName.h" << endl;
   cerr << "  toolboxPath   : the directory in which to generate the wrappers" << endl;
   cerr << "  headerPath    : path to matlab.h" << endl;
-  cerr << "  moduleType    : Specify wether to emit either python or matlab" << endl;
+  cerr << "  (Optional) moduleType    : Specify wether to emit either python or matlab" << endl;
 }
 
 /**
@@ -80,6 +80,8 @@ void usage() {
  * Typically called from "make all" using appropriate arguments
  */
 int main(int argc, const char* argv[]) {
+
+  cout << "DEBUG: Wrap called" << endl;
   if (argc < 5) {
     cerr << "Invalid arguments:\n";
     for (int i=0; i<argc; ++i)
@@ -90,12 +92,18 @@ int main(int argc, const char* argv[]) {
   else {
     try {
       if(argc == 6){
-        if(strcmp(argv[5],"python") == 0)
+        cout << argv[5] << endl;
+        if(strcmp(argv[5],"python") == 0){
+          cerr << "DEBUG: Python" << endl;
           generate_python_toolbox(argv[1],argv[2],argv[3],argv[4]);
-        else
+        }
+        else{
+          cerr << "DEBUG: MATLAB : 5" << endl;
           generate_matlab_toolbox(argv[1],argv[2],argv[3],argv[4]);
+        }
       }
       else{
+         cerr << "DEBUG: MATLAB : 4" << endl;
         generate_matlab_toolbox(argv[1],argv[2],argv[3],argv[4]);
       }
     } catch(std::exception& e) {

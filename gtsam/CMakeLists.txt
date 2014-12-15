@@ -162,8 +162,7 @@ endif ()
 
 if (GTSAM_BUILD_PYTHON)
 
-
-  wrap_and_install_python(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "")
+  wrap_and_install_python(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "")
   #set the default path for built executables to the "bin" directory
   #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
   #set the default path for built libraries to the "lib" directory
@@ -188,5 +187,4 @@ if (GTSAM_BUILD_PYTHON)
   #add_python_export_library(${PROJECT_NAME}_test ${PROJECT_SOURCE_DIR}/python/${PROJECT_NAME}
   #  ${AUTOGEN_TEST_FILES}
   #)
-  message('BUILDING PYTHON WRAPPER')
 endif()
