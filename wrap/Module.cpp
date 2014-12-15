@@ -450,7 +450,12 @@ void Module::python_code(const string& toolboxPath) const {
   string wrapperFileName = toolboxPath + "/" + wrapperName + ".cpp";
   FileWriter wrapperFile(wrapperFileName, verbose, "//");
   wrapperFile.oss << "#include <boost/python.hpp>\n\n";
+  // Add header files
+
+  generateIncludes(wrapperFile);
+
   wrapperFile.oss << "using namespace boost::python;\n";
+  wrapperFile.oss << "using namespace gtsam;\n\n";// add namespace to avoid appending gtsam::
   wrapperFile.oss << "BOOST_PYTHON_MODULE(" + name + ")\n";
   wrapperFile.oss << "{\n";
 

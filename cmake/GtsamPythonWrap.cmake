@@ -33,6 +33,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   find_package(PythonLibs 2.7 REQUIRED)
   include_directories(${PYTHON_INCLUDE_DIRS})
 
+	get_filename_component(interfaceHeader "${interfaceHeader}" ABSOLUTE)
 	get_filename_component(modulePath "${interfaceHeader}" PATH)
   get_filename_component(moduleName "${interfaceHeader}" NAME_WE)
   #set(moduleName python)
@@ -40,7 +41,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 	# Paths for generated files
 	set(compiled_mex_modules_root "${PROJECT_BINARY_DIR}/wrap/${moduleName}_mex")
 	set(generated_files_path "${PROJECT_BINARY_DIR}/wrap/${moduleName}")
-	set(generated_cpp_file "${generated_files_path}/export${moduleName}.cpp")
+	set(generated_cpp_file "${generated_files_path}/${moduleName}_python.cpp")
 
   #TODO(Andrew): This is not necessary for python, but REQUIRED in wrap
   # Find matlab.h in GTSAM

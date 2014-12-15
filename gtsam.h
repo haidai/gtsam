@@ -103,6 +103,7 @@
 
 namespace gtsam {
 // TODO: Revert back to original
+  #include <gtsam/geometry/Point2.h>
   class Point2 {
     // Standard Constructors
     Point2();
@@ -474,7 +475,7 @@ namespace gtsam {
 //  void serialize() const;
 //};
 //
-//class Pose2 {
+//class wrap_and_install_matlabPose2 {
 //  // Standard Constructor
 //  Pose2();
 //  Pose2(const gtsam::Pose2& pose);
