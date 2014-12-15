@@ -4,7 +4,7 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE(geometry)
 {
 class_<Point2>("Point2")
-  .def("Point2", &Point2::Point2);
+  .def(init<>());
   .def("argChar", &Point2::argChar);
   .def("argUChar", &Point2::argUChar);
   .def("dim", &Point2::dim);
@@ -16,14 +16,14 @@ class_<Point2>("Point2")
 ;
 
 class_<Point3>("Point3")
-  .def("Point3", &Point3::Point3);
+  .def(init<>());
   .def("StaticFunctionRet", &Point3::StaticFunctionRet);
   .def("staticFunction", &Point3::staticFunction);
   .def("norm", &Point3::norm);
 ;
 
 class_<Test>("Test")
-  .def("Test", &Test::Test);
+  .def(init<>());
   .def("arg_EigenConstRef", &Test::arg_EigenConstRef);
   .def("create_MixedPtrs", &Test::create_MixedPtrs);
   .def("create_ptrs", &Test::create_ptrs);
@@ -46,11 +46,11 @@ class_<Test>("Test")
 ;
 
 class_<MyBase>("MyBase")
-  .def("MyBase", &MyBase::MyBase);
+  .def(init<>());
 ;
 
 class_<MyTemplatePoint2>("MyTemplatePoint2")
-  .def("MyTemplatePoint2", &MyTemplatePoint2::MyTemplatePoint2);
+  .def(init<>());
   .def("accept_T", &MyTemplatePoint2::accept_T);
   .def("accept_Tptr", &MyTemplatePoint2::accept_Tptr);
   .def("create_MixedPtrs", &MyTemplatePoint2::create_MixedPtrs);
@@ -65,7 +65,7 @@ class_<MyTemplatePoint2>("MyTemplatePoint2")
 ;
 
 class_<MyTemplateMatrix>("MyTemplateMatrix")
-  .def("MyTemplateMatrix", &MyTemplateMatrix::MyTemplateMatrix);
+  .def(init<>());
   .def("accept_T", &MyTemplateMatrix::accept_T);
   .def("accept_Tptr", &MyTemplateMatrix::accept_Tptr);
   .def("create_MixedPtrs", &MyTemplateMatrix::create_MixedPtrs);
@@ -80,7 +80,7 @@ class_<MyTemplateMatrix>("MyTemplateMatrix")
 ;
 
 class_<MyFactorPosePoint2>("MyFactorPosePoint2")
-  .def("MyFactorPosePoint2", &MyFactorPosePoint2::MyFactorPosePoint2);
+  .def(init<>());
 ;
 
 def("aGlobalFunction", aGlobalFunction);

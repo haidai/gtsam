@@ -117,8 +117,16 @@ string Constructor::wrapper_fragment(FileWriter& file, Str cppClassName,
 
 /* ************************************************************************* */
 void Constructor::python_wrapper(FileWriter& wrapperFile, Str className) const {
-  wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::" << name_
-      << ");\n";
+  // Default constructor
+  wrapperFile.oss << "  .def(init<>())\n";
+  if(nrOverloads() > 1){
+    wrapperFile.oss << "  .def(init<";
+    for (size_t i = 0; i < nrOverloads(); i++) {
+      argumentList(i).emit_prototype(wrapperFile, name_);
+    }
+    wrapperFile.oss << ">())\n";
+  }
+
 }
 
 /* ************************************************************************* */

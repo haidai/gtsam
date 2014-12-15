@@ -135,7 +135,7 @@ string MethodBase::wrapper_fragment(FileWriter& wrapperFile, Str cppClassName,
 /* ************************************************************************* */
 void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
   wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"
-      << name_ << ");\n";
+      << name_ << ")\n";
 }
 
 /* ************************************************************************* */
