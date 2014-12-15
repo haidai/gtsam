@@ -475,7 +475,7 @@ namespace gtsam {
 //  void serialize() const;
 //};
 //
-//class wrap_and_install_matlabPose2 {
+//class Pose2 {
 //  // Standard Constructor
 //  Pose2();
 //  Pose2(const gtsam::Pose2& pose);
