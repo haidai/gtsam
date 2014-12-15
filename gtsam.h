@@ -107,6 +107,7 @@ namespace gtsam {
   class Point2 {
     // Standard Constructors
     Point2();
+    Point2(double x, double y);
     // Standard Interface
     double x() const;
     double y() const;
