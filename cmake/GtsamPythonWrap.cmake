@@ -79,7 +79,8 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 		WORKING_DIRECTORY ${generated_files_path}
 		VERBATIM
     )
-
+  
+  set(gtsamLib gtsam)
   #TODO(Andrew): Reimplement below
 
   IF(APPLE)
@@ -110,7 +111,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
         VERSION             1
         SOVERSION           0
         SUFFIX              ".pyd")
-    target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} gtsamDebug) #temp
+      target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
 
     set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${moduleName}_wrapper>)
     message(${PYLIB_OUTPUT_FILE})
@@ -126,7 +127,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
         CLEAN_DIRECT_OUTPUT 1
         VERSION             1
         SOVERSION           0)
-    target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} gtsamDebug) #temp
+      target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
     # On OSX and Linux, the python library must end in the extension .so. Build this
     # filename here.
     #get_property(PYLIB_OUTPUT_FILE TARGET ${moduleName}_wrapper PROPERTY LOCATION)
