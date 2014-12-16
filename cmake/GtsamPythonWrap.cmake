@@ -140,11 +140,11 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 
 
   # Cause the library to be output in the correct directory.
-  add_custom_command(TARGET ${moduleName}_wrapper
-    POST_BUILD
-    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
-    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-    COMMENT "Copying library files to python directory" )
+  #add_custom_command(TARGET ${moduleName}_wrapper
+  #  POST_BUILD
+  #  COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
+  #  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+  #  COMMENT "Copying library files to python directory" )
 
   get_directory_property(AMCF ADDITIONAL_MAKE_CLEAN_FILES)
   list(APPEND AMCF ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME})
