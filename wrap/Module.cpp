@@ -445,8 +445,8 @@ void Module::python_code(const string& toolboxPath) const {
 
   fs::create_directories(toolboxPath);
 
-  // create the unified .cpp switch file
   const string wrapperName = name + "_python";
+  // create the unified .cpp switch file
   string wrapperFileName = toolboxPath + "/" + wrapperName + ".cpp";
   FileWriter wrapperFile(wrapperFileName, verbose, "//");
   wrapperFile.oss << "#include <boost/python.hpp>\n\n";
@@ -456,7 +456,11 @@ void Module::python_code(const string& toolboxPath) const {
 
   wrapperFile.oss << "using namespace boost::python;\n";
   wrapperFile.oss << "using namespace gtsam;\n\n";// add namespace to avoid appending gtsam::
-  wrapperFile.oss << "BOOST_PYTHON_MODULE(" + name + ")\n";
+  // Name for the module must match the name of the compiled library
+  // To avoid conflicts with libgtsam, we used the wrapperName
+  // This is obviously not ideal, perhaps there is a better convention
+  // NOTE: MUST have the lib
+  wrapperFile.oss << "BOOST_PYTHON_MODULE(lib" + wrapperName + ")\n";
   wrapperFile.oss << "{\n";
 
   // write out classes

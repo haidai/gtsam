@@ -104,47 +104,45 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   ENDIF(APPLE)
 
   if(MSVC)
-    add_library(${moduleName}_wrapper MODULE ${ARGN})
-    set_target_properties(${moduleName}_wrapper PROPERTIES
-        OUTPUT_NAME         ${moduleName}_wrapper
+    add_library(${moduleName}_python MODULE ${ARGN})
+    set_target_properties(${moduleName}_python PROPERTIES
+        OUTPUT_NAME         ${moduleName}_python
         CLEAN_DIRECT_OUTPUT 1
         VERSION             1
         SOVERSION           0
         SUFFIX              ".pyd")
-      target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
+      target_link_libraries(${moduleName}_python ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
 
-    set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${moduleName}_wrapper>)
+    set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${moduleName}_python>)
     message(${PYLIB_OUTPUT_FILE})
     get_filename_component(PYLIB_OUTPUT_NAME ${PYLIB_OUTPUT_FILE} NAME_WE)
-    #set(PYLIB_SO_NAME ${PYLIB_OUTPUT_NAME}.pyd)
+    set(PYLIB_SO_NAME ${PYLIB_OUTPUT_NAME}.pyd)
 
   ELSE()
     # Create a shared library
-    add_library(${moduleName}_wrapper SHARED ${generated_cpp_file})
+    add_library(${moduleName}_python SHARED ${generated_cpp_file})
 
-    set_target_properties(${moduleName}_wrapper PROPERTIES
-        OUTPUT_NAME         ${moduleName}_wrapper
-        CLEAN_DIRECT_OUTPUT 1
-        VERSION             1
-        SOVERSION           0)
-      target_link_libraries(${moduleName}_wrapper ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
+    set_target_properties(${moduleName}_python PROPERTIES
+        OUTPUT_NAME         ${moduleName}_python
+        CLEAN_DIRECT_OUTPUT 1)
+      target_link_libraries(${moduleName}_python ${Boost_PYTHON_LIBRARY} ${PYTHON_LIBRARY} ${gtsamLib}) #temp
     # On OSX and Linux, the python library must end in the extension .so. Build this
     # filename here.
-    #get_property(PYLIB_OUTPUT_FILE TARGET ${moduleName}_wrapper PROPERTY LOCATION)
-    set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${moduleName}_wrapper>)
+    get_property(PYLIB_OUTPUT_FILE TARGET ${moduleName}_python PROPERTY LOCATION)
+    set(PYLIB_OUTPUT_FILE $<TARGET_FILE:${moduleName}_python>)
     message(${PYLIB_OUTPUT_FILE})
     get_filename_component(PYLIB_OUTPUT_NAME ${PYLIB_OUTPUT_FILE} NAME_WE)
-    set(PYLIB_SO_NAME ${PYLIB_OUTPUT_NAME}.so)
-
+    set(PYLIB_SO_NAME lib${moduleName}_python.so)
   ENDIF(MSVC)
 
-
+  # Installs the library in the gtsam folder, which is used by setup.py to create the gtsam package
+  set(PYTHON_MODULE_DIRECTORY ${CMAKE_SOURCE_DIR}/python/gtsam)
   # Cause the library to be output in the correct directory.
-  #add_custom_command(TARGET ${moduleName}_wrapper
-  #  POST_BUILD
-  #  COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
-  #  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  #  COMMENT "Copying library files to python directory" )
+  add_custom_command(TARGET ${moduleName}_python
+    POST_BUILD
+    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
+    WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
+    COMMENT "Copying library files to python directory" )
 
   get_directory_property(AMCF ADDITIONAL_MAKE_CLEAN_FILES)
   list(APPEND AMCF ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME})
