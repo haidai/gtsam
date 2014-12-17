@@ -28,6 +28,20 @@ class TestPoint2(unittest.TestCase):
         self.assertEqual(x, 2.0)
         self.assertEqual(y, 5.0)
 
+        actual = p.inverse()
+        x = actual.x()
+        y = actual.y()
+        self.assertEqual(x, -2.0)
+        self.assertEqual(y, -5.0)
+
+        p2 = Point2(1.0, 4.0)
+        actual = p2.between(p)
+        x = actual.x()
+        y = actual.y()
+        self.assertEqual(x, 1.0)
+        self.assertEqual(y, 1.0)
+
+
 
 if __name__ == '__main__':
     unittest.main()

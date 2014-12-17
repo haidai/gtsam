@@ -121,6 +121,7 @@ namespace gtsam {
     gtsam::Point2 compose(const gtsam::Point2& p2) const;
     gtsam::Point2 compose(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
     gtsam::Point2 between(const gtsam::Point2& p2) const;
+    gtsam::Point2 between(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
 
  };
 }
