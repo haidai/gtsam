@@ -20,6 +20,14 @@ class TestPoint2(unittest.TestCase):
         self.assertEqual(x, 1.0)
         self.assertEqual(y, 1.0)
 
+    def test_group_methods(self):
+        p = Point2(2.0, 5.0)
+        actual = self.point.compose(p)
+        x = actual.x()
+        y = actual.y()
+        self.assertEqual(x, 2.0)
+        self.assertEqual(y, 5.0)
+
 
 if __name__ == '__main__':
     unittest.main()

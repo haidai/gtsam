@@ -134,8 +134,11 @@ string MethodBase::wrapper_fragment(FileWriter& wrapperFile, Str cppClassName,
 
 /* ************************************************************************* */
 void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
-  wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"
-      << name_ << ")\n";
+   wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"<< name_;
+    if(nrOverloads() == 1)
+      wrapperFile.oss << ")\n";
+    else
+      wrapperFile.oss << ", " << name_ << "_overloads())\n";
 }
 
 /* ************************************************************************* */

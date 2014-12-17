@@ -137,6 +137,7 @@ public:
 
   // emit python wrapper
   void python_wrapper(FileWriter& wrapperFile) const;
+  void python_memberFunctionOverloads(FileWriter& wrapperFile) const;
 
   friend std::ostream& operator<<(std::ostream& os, const Class& cls) {
     os << "class " << cls.name() << "{\n";

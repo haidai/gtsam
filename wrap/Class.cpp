@@ -641,3 +641,25 @@ void Class::python_wrapper(FileWriter& wrapperFile) const {
 }
 
 /* ************************************************************************* */
+void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
+  //BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
+  BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
+    if(m.nrOverloads() > 1){
+      size_t min = m.argumentList(0).size();
+      size_t max = min;
+      // Find max num of arguments possible
+      for(size_t i=0; i < m.nrOverloads(); i++){
+        if(m.argumentList(i).size() > max)
+          max = m.argumentList(i).size();
+      }
+
+      wrapperFile.oss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(";
+      wrapperFile.oss << m.name() << "_overloads, " << name() << "::" << m.name();
+      wrapperFile.oss << ", " << min << ", " << max << ")\n";
+    }
+  }
+
+  wrapperFile.oss << "\n";
+}
+/* ************************************************************************* */
+

@@ -101,7 +101,11 @@
  *  - TODO: Add generalized serialization support via boost.serialization with hooks to matlab save/load
  */
 
+// Pre-def OptionalJacobian to avoid dependency error
+class gtsam::OptionalJacobian;
+
 namespace gtsam {
+
 // TODO: Revert back to original
   #include <gtsam/geometry/Point2.h>
   class Point2 {
@@ -111,6 +115,13 @@ namespace gtsam {
     // Standard Interface
     double x() const;
     double y() const;
+    // Group
+    static gtsam::Point2 identity();
+    gtsam::Point2 inverse() const;
+    gtsam::Point2 compose(const gtsam::Point2& p2) const;
+    gtsam::Point2 compose(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
+    gtsam::Point2 between(const gtsam::Point2& p2) const;
+
  };
 }
 

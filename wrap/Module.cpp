@@ -456,6 +456,12 @@ void Module::python_code(const string& toolboxPath) const {
 
   wrapperFile.oss << "using namespace boost::python;\n";
   wrapperFile.oss << "using namespace gtsam;\n\n";// add namespace to avoid appending gtsam::
+
+  // MACROS TODO(Andrew): Move these into class specific functions
+  BOOST_FOREACH(const Class& cls, expandedClasses){
+    cls.python_memberFunctionOverloads(wrapperFile);
+  }
+
   // Name for the module must match the name of the compiled library
   // To avoid conflicts with libgtsam, we used the wrapperName
   // This is obviously not ideal, perhaps there is a better convention
