@@ -2,6 +2,7 @@ import unittest
 from numpy.testing import *
 from gtsam import *
 import numpy_eigen as npe
+import numpy
 
 #https://docs.python.org/2/library/unittest.html
 class TestPoint2(unittest.TestCase):
@@ -50,6 +51,13 @@ class TestPoint2(unittest.TestCase):
         actual = p.vector()
         assert_array_equal(actual, [2.0, 5.0]) #numpy.testing
 
+    def test_manifold(self):
+        actual = self.point.dim()
+        self.assertEqual(actual, 2)
+
+        #Causes error
+        #v = numpy.array([1.0, 1.0])
+        #actual = self.point.retract(v)
 
 
 if __name__ == '__main__':

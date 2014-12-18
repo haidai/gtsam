@@ -654,7 +654,8 @@ void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
       }
 
       wrapperFile.oss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(";
-      wrapperFile.oss << m.name() << "_overloads, " << name() << "::" << m.name();
+      // Example macro name: Point2_compose_overloads
+      wrapperFile.oss << name() << m.name() << "_overloads, " << name() << "::" << m.name();
       wrapperFile.oss << ", " << min << ", " << max << ")\n";
     }
   }

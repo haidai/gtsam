@@ -104,43 +104,6 @@
 // Pre-def OptionalJacobian to avoid dependency error
 class gtsam::OptionalJacobian;
 
-namespace gtsam {
-
-// TODO: Revert back to original
-  #include <gtsam/geometry/Point2.h>
-  class Point2 {
-    // Standard Constructors
-    Point2();
-    Point2(double x, double y);
-    // Manifold
-    static size_t Dim();
-    size_t dim() const;
-    gtsam::Point2 retract(Vector v) const;
-    Vector localCoordinates(const gtsam::Point2& p) const;
-
-    // Lie Group
-    static gtsam::Point2 Expmap(Vector v);
-    static Vector Logmap(const gtsam::Point2& p);
-
-    // Standard Interface
-    double x() const;
-    double y() const;
-    Vector vector() const;
-    double dist(const gtsam::Point2& p2) const;
-    double norm() const;
-
-    // Group
-    static gtsam::Point2 identity();
-    gtsam::Point2 inverse() const;
-    gtsam::Point2 compose(const gtsam::Point2& p2) const;
-    gtsam::Point2 compose(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
-    gtsam::Point2 between(const gtsam::Point2& p2) const;
-    gtsam::Point2 between(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
-
- };
-}
-
-
 //namespace std {
 //    #include <vector>
 //    template<T>
@@ -177,7 +140,7 @@ namespace gtsam {
 //
 //}
 //
-//namespace gtsam {
+namespace gtsam {
 //
 ////*************************************************************************
 //// base
@@ -293,42 +256,45 @@ namespace gtsam {
 //// geometry
 ////*************************************************************************
 //
-//class Point2 {
-//  // Standard Constructors
-//  Point2();
-//  Point2(double x, double y);
-//  Point2(Vector v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Point2& pose, double tol) const;
-//
-//  // Group
-//  static gtsam::Point2 identity();
-//  gtsam::Point2 inverse() const;
-//  gtsam::Point2 compose(const gtsam::Point2& p2) const;
-//  gtsam::Point2 between(const gtsam::Point2& p2) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Point2 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Point2& p) const;
-//
-//  // Lie Group
-//  static gtsam::Point2 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Point2& p);
-//
-//  // Standard Interface
-//  double x() const;
-//  double y() const;
-//  Vector vector() const;
-//  double dist(const gtsam::Point2& p2) const;
-//  double norm() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+#include <gtsam/geometry/Point2.h>
+class Point2 {
+  // Standard Constructors
+  Point2();
+  Point2(double x, double y);
+  Point2(Vector v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Point2& pose, double tol) const;
+
+  // Group
+  static gtsam::Point2 identity();
+  gtsam::Point2 inverse() const;
+  gtsam::Point2 compose(const gtsam::Point2& p2) const;
+  gtsam::Point2 compose(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
+  gtsam::Point2 between(const gtsam::Point2& p2) const;
+  gtsam::Point2 between(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
+
+  // Manifold
+  static size_t Dim();
+  size_t dim() const;
+  gtsam::Point2 retract(Vector v) const;
+  Vector localCoordinates(const gtsam::Point2& p) const;
+
+  // Lie Group
+  static gtsam::Point2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Point2& p);
+
+  // Standard Interface
+  double x() const;
+  double y() const;
+  Vector vector() const;
+  double dist(const gtsam::Point2& p2) const;
+  double norm() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
 //
 //class StereoPoint2 {
 //  // Standard Constructors
@@ -401,50 +367,54 @@ namespace gtsam {
 //  void serialize() const;
 //};
 //
-//class Rot2 {
-//  // Standard Constructors and Named Constructors
-//  Rot2();
-//  Rot2(double theta);
-//  static gtsam::Rot2 fromAngle(double theta);
-//  static gtsam::Rot2 fromDegrees(double theta);
-//  static gtsam::Rot2 fromCosSin(double c, double s);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Rot2& rot, double tol) const;
-//
-//  // Group
-//  static gtsam::Rot2 identity();
-//  gtsam::Rot2 inverse();
-//  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
-//  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Rot2 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Rot2& p) const;
-//
-//  // Lie Group
-//  static gtsam::Rot2 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Rot2& p);
-//
-//  // Group Action on Point2
-//  gtsam::Point2 rotate(const gtsam::Point2& point) const;
-//  gtsam::Point2 unrotate(const gtsam::Point2& point) const;
-//
-//  // Standard Interface
-//  static gtsam::Rot2 relativeBearing(const gtsam::Point2& d); // Ignoring derivative
-//  static gtsam::Rot2 atan2(double y, double x);
-//  double theta() const;
-//  double degrees() const;
-//  double c() const;
-//  double s() const;
-//  Matrix matrix() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+#include <gtsam/geometry/Rot2.h>
+class Rot2 {
+  // Standard Constructors and Named Constructors
+  Rot2();
+  Rot2(double theta);
+  static gtsam::Rot2 fromAngle(double theta);
+  static gtsam::Rot2 fromDegrees(double theta);
+  static gtsam::Rot2 fromCosSin(double c, double s);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Rot2& rot, double tol) const;
+
+  // Group
+  static gtsam::Rot2 identity();
+  gtsam::Rot2 inverse();
+
+  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
+  gtsam::Rot2 compose(const gtsam::Rot2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
+  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
+  gtsam::Rot2 between(const gtsam::Rot2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
+
+  // Manifold
+  static size_t Dim();
+  size_t dim() const;
+  gtsam::Rot2 retract(Vector v) const;
+  Vector localCoordinates(const gtsam::Rot2& p) const;
+
+  // Lie Group
+  static gtsam::Rot2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Rot2& p);
+
+  // Group Action on Point2
+  gtsam::Point2 rotate(const gtsam::Point2& point) const;
+  gtsam::Point2 unrotate(const gtsam::Point2& point) const;
+
+  // Standard Interface
+  static gtsam::Rot2 relativeBearing(const gtsam::Point2& d); // Ignoring derivative
+  static gtsam::Rot2 atan2(double y, double x);
+  double theta() const;
+  double degrees() const;
+  double c() const;
+  double s() const;
+  Matrix matrix() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
 //
 //class Rot3 {
 //  // Standard Constructors and Named Constructors
@@ -2630,4 +2600,4 @@ namespace gtsam {
 //
 //} //\namespace utilities
 //
-//}
+}

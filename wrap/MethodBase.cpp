@@ -138,7 +138,7 @@ void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
     if(nrOverloads() == 1)
       wrapperFile.oss << ")\n";
     else
-      wrapperFile.oss << ", " << name_ << "_overloads())\n";
+      wrapperFile.oss << ", " << className << name_ << "_overloads())\n";
 }
 
 /* ************************************************************************* */
