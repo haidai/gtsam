@@ -1,4 +1,5 @@
 import unittest
+from numpy.testing import *
 from gtsam import *
 import numpy_eigen as npe
 
@@ -43,7 +44,8 @@ class TestPoint2(unittest.TestCase):
         self.assertEqual(y, 1.0)
 
     def test_vector(self):
-        self.point.vector()
+        actual = self.point.vector()
+        assert_array_equal(actual, [0.0, 0.0]) #numpy.testing
 
 
 
