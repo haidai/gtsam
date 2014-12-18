@@ -1,5 +1,6 @@
 import unittest
 from gtsam import *
+import numpy_eigen as npe
 
 #https://docs.python.org/2/library/unittest.html
 class TestPoint2(unittest.TestCase):
@@ -40,6 +41,9 @@ class TestPoint2(unittest.TestCase):
         y = actual.y()
         self.assertEqual(x, 1.0)
         self.assertEqual(y, 1.0)
+
+    def test_vector(self):
+        self.point.vector()
 
 
 

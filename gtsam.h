@@ -112,9 +112,23 @@ namespace gtsam {
     // Standard Constructors
     Point2();
     Point2(double x, double y);
+    // Manifold
+    static size_t Dim();
+    size_t dim() const;
+    gtsam::Point2 retract(Vector v) const;
+    Vector localCoordinates(const gtsam::Point2& p) const;
+
+    // Lie Group
+    static gtsam::Point2 Expmap(Vector v);
+    static Vector Logmap(const gtsam::Point2& p);
+
     // Standard Interface
     double x() const;
     double y() const;
+    Vector vector() const;
+    double dist(const gtsam::Point2& p2) const;
+    double norm() const;
+
     // Group
     static gtsam::Point2 identity();
     gtsam::Point2 inverse() const;
