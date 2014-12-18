@@ -46,6 +46,9 @@ class TestPoint2(unittest.TestCase):
     def test_vector(self):
         actual = self.point.vector()
         assert_array_equal(actual, [0.0, 0.0]) #numpy.testing
+        p = Point2(2.0, 5.0)
+        actual = p.vector()
+        assert_array_equal(actual, [2.0, 5.0]) #numpy.testing
 
 
 
