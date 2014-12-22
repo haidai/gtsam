@@ -59,6 +59,10 @@ class TestPoint2(unittest.TestCase):
         #v = numpy.array([1.0, 1.0])
         #actual = self.point.retract(v)
 
+    def test_npe(self):
+        v = numpy.array([[1.0], [1.0]])
+        p = Point2(v)
+
 
 if __name__ == '__main__':
     unittest.main()
