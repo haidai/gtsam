@@ -45,7 +45,7 @@ ImuFactor::PreintegratedMeasurements::PreintegratedMeasurements(
 //------------------------------------------------------------------------------
 void ImuFactor::PreintegratedMeasurements::print(const string& s) const {
   PreintegrationBase::print(s);
-  cout << "  preintMeasCov = \n [ " << preintMeasCov_ << " ]" << endl;
+  cout << " preintMeasCov = \n [ " << preintMeasCov_ << " ]" << endl;
 }
 
 //------------------------------------------------------------------------------
