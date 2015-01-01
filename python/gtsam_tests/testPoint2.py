@@ -56,8 +56,8 @@ class TestPoint2(unittest.TestCase):
         self.assertEqual(actual, 2)
 
         #Causes error
-        #v = numpy.array([1.0, 1.0])
-        #actual = self.point.retract(v)
+        v = numpy.array([1.0, 1.0])
+        actual = self.point.retract(v)
 
     def test_npe(self):
         v = numpy.array([[1.0], [1.0]])

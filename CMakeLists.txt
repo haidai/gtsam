@@ -322,10 +322,6 @@ if (GTSAM_INSTALL_MATLAB_TOOLBOX)
 	add_subdirectory(matlab)
 endif()
 
-if(GTSAM_BUILD_PYTHON)
-  add_subdirectory(python)
-endif()
-
 # Build gtsam_unstable
 if (GTSAM_BUILD_UNSTABLE)
     add_subdirectory(gtsam_unstable)

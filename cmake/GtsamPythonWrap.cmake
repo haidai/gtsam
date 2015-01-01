@@ -33,6 +33,16 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   find_package(PythonLibs 2.7 REQUIRED)
   include_directories(${PYTHON_INCLUDE_DIRS})
 
+  # Find NumpyEigen
+  find_package(numpy_eigen REQUIRED)
+  include_directories(${numpy_eigen_INCLUDE_DIR})
+
+  if(GTSAM_USE_SYSTEM_EIGEN)
+     find_package(Eigen3 REQUIRED)
+  else()
+     include_directories(${CMAKE_SOURCE_DIR}/gtsam/3rdparty/Eigen/)
+  endif()
+
 	get_filename_component(interfaceHeader "${interfaceHeader}" ABSOLUTE)
 	get_filename_component(modulePath "${interfaceHeader}" PATH)
   get_filename_component(moduleName "${interfaceHeader}" NAME_WE)

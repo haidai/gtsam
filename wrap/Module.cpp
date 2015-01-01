@@ -450,6 +450,7 @@ void Module::python_code(const string& toolboxPath) const {
   string wrapperFileName = toolboxPath + "/" + wrapperName + ".cpp";
   FileWriter wrapperFile(wrapperFileName, verbose, "//");
   wrapperFile.oss << "#include <boost/python.hpp>\n\n";
+  wrapperFile.oss << "#include <numpy_eigen/NumpyEigenConverter.hpp>\n\n";
   // Add header files
 
   generateIncludes(wrapperFile);
