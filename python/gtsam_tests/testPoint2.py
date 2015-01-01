@@ -55,14 +55,11 @@ class TestPoint2(unittest.TestCase):
         actual = self.point.dim()
         self.assertEqual(actual, 2)
 
-        #Causes error
-        v = numpy.array([1.0, 1.0])
-        actual = self.point.retract(v)
-
-    def test_npe(self):
-        v = numpy.array([[1.0], [1.0]])
-        p = Point2(v)
-
+        d = numpy.array([1.0, -1.0])
+        a = Point2(numpy.array([[4.0], [5.0]]))
+        b = a.retract(d)
+        c = Point2(numpy.array([[5.0], [4.0]]))
+        assert_array_equal(b.vector(), c.vector())
 
 if __name__ == '__main__':
     unittest.main()
