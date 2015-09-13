@@ -270,14 +270,8 @@ class Point2 {
   // Group
   static gtsam::Point2 identity();
   gtsam::Point2 inverse() const;
-  gtsam::Point2 compose(const gtsam::Point2& p2) const;
-  gtsam::Point2 compose(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
-  gtsam::Point2 between(const gtsam::Point2& p2) const;
-  gtsam::Point2 between(const gtsam::Point2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
 
   // Manifold
-  static size_t Dim();
-  size_t dim() const;
   gtsam::Point2 retract(Vector v) const;
   Vector localCoordinates(const gtsam::Point2& p) const;
 
@@ -382,18 +376,6 @@ class Rot2 {
 
   // Group
   static gtsam::Rot2 identity();
-  gtsam::Rot2 inverse();
-
-  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
-  gtsam::Rot2 compose(const gtsam::Rot2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
-  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
-  gtsam::Rot2 between(const gtsam::Rot2& p2, const gtsam::OptionalJacobian& H1, const gtsam::OptionalJacobian& H2) const;
-
-  // Manifold
-  static size_t Dim();
-  size_t dim() const;
-  gtsam::Rot2 retract(Vector v) const;
-  Vector localCoordinates(const gtsam::Rot2& p) const;
 
   // Lie Group
   static gtsam::Rot2 Expmap(Vector v);
