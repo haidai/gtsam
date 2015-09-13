@@ -21,21 +21,31 @@
 #pragma once
 
 #include <gtsam/geometry/Point3.h>
-#include <gtsam/base/DerivedValue.h>
-#include <boost/random/mersenne_twister.hpp>
+#include <gtsam/base/Manifold.h>
+#include <gtsam/base/Matrix.h>
+#include <gtsam/dllexport.h>
+
 #include <boost/optional.hpp>
+#include <boost/random/mersenne_twister.hpp>
+#include <boost/serialization/nvp.hpp>
+
+#include <string>
 
 namespace gtsam {
 
 /// Represents a 3D point on a unit sphere.
-class GTSAM_EXPORT Unit3{
+class GTSAM_EXPORT Unit3 {
 
 private:
 
-  Point3 p_; ///< The location of the point on the unit sphere
+  Vector3 p_; ///< The location of the point on the unit sphere
   mutable boost::optional<Matrix32> B_; ///< Cached basis
 
 public:
+
+  enum {
+    dimension = 2
+  };
 
   /// @name Constructors
   /// @{
@@ -47,23 +57,23 @@ public:
 
   /// Construct from point
   explicit Unit3(const Point3& p) :
-      p_(p / p.norm()) {
+      p_(p.vector().normalized()) {
   }
 
   /// Construct from a vector3
   explicit Unit3(const Vector3& p) :
-      p_(p / p.norm()) {
+      p_(p.normalized()) {
   }
 
   /// Construct from x,y,z
   Unit3(double x, double y, double z) :
       p_(x, y, z) {
-    p_ = p_ / p_.norm();
+    p_.normalize();
   }
 
   /// Named constructor from Point3 with optional Jacobian
-  static Unit3 FromPoint3(const Point3& point, OptionalJacobian<2,3> H =
-      boost::none);
+  static Unit3 FromPoint3(const Point3& point, //
+      OptionalJacobian<2, 3> H = boost::none);
 
   /// Random direction, using boost::uniform_on_sphere
   static Unit3 Random(boost::mt19937 & rng);
@@ -78,7 +88,7 @@ public:
 
   /// The equals function with tolerance
   bool equals(const Unit3& s, double tol = 1e-9) const {
-    return p_.equals(s.p_, tol);
+    return equal_with_abs_tol(p_, s.p_, tol);
   }
   /// @}
 
@@ -96,7 +106,14 @@ public:
   Matrix3 skew() const;
 
   /// Return unit-norm Point3
-  const Point3& point3(OptionalJacobian<3,2> H = boost::none) const {
+  Point3 point3(OptionalJacobian<3, 2> H = boost::none) const {
+    if (H)
+      *H = basis();
+    return Point3(p_);
+  }
+
+  /// Return unit-norm Vector
+  const Vector3& unitVector(boost::optional<Matrix&> H = boost::none) const {
     if (H)
       *H = basis();
     return p_;
@@ -104,16 +121,14 @@ public:
 
   /// Return scaled direction as Point3
   friend Point3 operator*(double s, const Unit3& d) {
-    return s * d.p_;
+    return Point3(s * d.p_);
   }
 
   /// Signed, vector-valued error between two directions
-  Vector2 error(const Unit3& q,
-      OptionalJacobian<2,2> H = boost::none) const;
+  Vector2 error(const Unit3& q, OptionalJacobian<2, 2> H = boost::none) const;
 
   /// Distance between two directions
-  double distance(const Unit3& q,
-      OptionalJacobian<1,2> H = boost::none) const;
+  double distance(const Unit3& q, OptionalJacobian<1, 2> H = boost::none) const;
 
   /// @}
 
@@ -132,7 +147,7 @@ public:
 
   enum CoordinatesMode {
     EXPMAP, ///< Use the exponential map to retract
-    RENORM ///< Retract with vector addtion and renormalize.
+    RENORM ///< Retract with vector addition and renormalize.
   };
 
   /// The retract function
@@ -150,34 +165,20 @@ private:
   /** Serialization function */
   friend class boost::serialization::access;
   template<class ARCHIVE>
-    void serialize(ARCHIVE & ar, const unsigned int version) {
-      ar & BOOST_SERIALIZATION_NVP(p_);
-      ar & BOOST_SERIALIZATION_NVP(B_);
-    }
+  void serialize(ARCHIVE & ar, const unsigned int /*version*/) {
+    ar & BOOST_SERIALIZATION_NVP(p_);
+  }
 
   /// @}
 
 };
 
 // Define GTSAM traits
-namespace traits {
-
-template<>
-struct GTSAM_EXPORT is_manifold<Unit3> : public boost::true_type{
+template<> struct traits<Unit3> : public internal::Manifold<Unit3> {
 };
 
-template<>
-struct GTSAM_EXPORT dimension<Unit3> : public boost::integral_constant<int, 2>{
+template<> struct traits<const Unit3> : public internal::Manifold<Unit3> {
 };
-
-template<>
-struct GTSAM_EXPORT zero<Unit3> {
-  static Unit3 value() {
-    return Unit3();
-  }
-};
-
-}
 
 } // namespace gtsam
 

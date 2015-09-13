@@ -113,6 +113,24 @@ namespace gtsam {
   }
 
   /* ************************************************************************* */
+  Vector Values::atFixed(Key j,  size_t n) {
+    switch (n) {
+    case 1: return at<Vector1>(j);
+    case 2: return at<Vector2>(j);
+    case 3: return at<Vector3>(j);
+    case 4: return at<Vector4>(j);
+    case 5: return at<Vector5>(j);
+    case 6: return at<Vector6>(j);
+    case 7: return at<Vector7>(j);
+    case 8: return at<Vector8>(j);
+    case 9: return at<Vector9>(j);
+    default:
+      throw runtime_error(
+          "Values::at fixed size can only handle n in 1..9");
+    }
+  }
+
+  /* ************************************************************************* */
   const Value& Values::at(Key j) const {
     // Find the item
     KeyValueMap::const_iterator item = values_.find(j);
@@ -192,8 +210,9 @@ namespace gtsam {
   }
 
   /* ************************************************************************* */
-  FastList<Key> Values::keys() const {
-    FastList<Key> result;
+  KeyVector Values::keys() const {
+    KeyVector result;
+    result.reserve(size());
     for(const_iterator key_value = begin(); key_value != end(); ++key_value)
       result.push_back(key_value->key);
     return result;
