@@ -154,12 +154,12 @@ if (GTSAM_INSTALL_MATLAB_TOOLBOX)
 	endif()
 
   # Wrap MATLAB
-  wrap_and_install_matlab(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "${mexFlags}")
+  wrap_and_install_library(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "" "${mexFlags}")
 endif ()
 
 if (GTSAM_BUILD_PYTHON)
 
-  wrap_and_install_python(../gtsam.h "${GTSAM_ADDITIONAL_LIBRARIES}" "")
+  wrap_and_install_python(../gtsampy.h "${GTSAM_ADDITIONAL_LIBRARIES}" "")
   #set the default path for built executables to the "bin" directory
   #set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
   #set the default path for built libraries to the "lib" directory
