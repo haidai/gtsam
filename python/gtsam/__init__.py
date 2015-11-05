@@ -1,1 +1,1 @@
-from libgtsam_python import *
+from libgtsampy_python import *

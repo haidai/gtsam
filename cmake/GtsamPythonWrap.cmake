@@ -35,8 +35,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 
   # Find NumpyEigen
   find_package(numpy_eigen REQUIRED)
-  include_directories(${numpy_eigen_INCLUDE_DIR})
-
+  include_directories(${numpy_eigen_INCLUDE_DIRS})
   if(GTSAM_USE_SYSTEM_EIGEN)
      find_package(Eigen3 REQUIRED)
   else()
@@ -89,7 +88,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 		WORKING_DIRECTORY ${generated_files_path}
 		VERBATIM
     )
-  
+
   set(gtsamLib gtsam)
   #TODO(Andrew): Reimplement below
 
