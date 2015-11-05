@@ -469,7 +469,30 @@ void Module::python_code(const string& toolboxPath) const {
   // This is obviously not ideal, perhaps there is a better convention
   // NOTE: MUST have the lib
   wrapperFile.oss << "BOOST_PYTHON_MODULE(lib" + wrapperName + ")\n";
-  wrapperFile.oss << "{\n";
+  wrapperFile.oss << "{\n\n";
+
+  // import_array();
+  // // NumpyEigenConverter<Eigen::Matrix< double, 1, 1 > >::register_converter();
+  // // NumpyEigenConverter<Eigen::Matrix< double, 2, 1 > >::register_converter();
+  // NumpyEigenConverter<Vector >::register_converter();
+  // NumpyEigenConverter<Vector >::register_converter();
+
+  // write register_converter lines for all Vector/Matrix types
+  // TODO: Look in the arguments and return values and register only matrix that are wrapped
+  // NOTE: Should call import_array before registering the converters for Eigen Matrices. See numpy_eigen/NumpyEigenConverter.hpp
+  wrapperFile.oss << "import_array();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector1>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector2>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector3>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector4>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector5>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector6>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector7>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector8>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector9>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector10>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix>::register_converter();\n\n";
 
   // write out classes
   BOOST_FOREACH(const Class& cls, expandedClasses)
