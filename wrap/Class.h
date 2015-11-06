@@ -25,6 +25,7 @@
 #include "Deconstructor.h"
 #include "Method.h"
 #include "StaticMethod.h"
+#include "OperatorMethod.h"
 #include "TypeAttributesTable.h"
 
 #ifdef __GNUC__
@@ -55,6 +56,7 @@ public:
   typedef const std::string& Str;
   typedef std::map<std::string, Method> Methods;
   typedef std::map<std::string, StaticMethod> StaticMethods;
+  typedef std::map<std::string, OperatorMethod> OperatorMethods;
 
 private:
 
@@ -65,6 +67,7 @@ private:
 public:
 
   StaticMethods static_methods; ///< Static methods
+  OperatorMethods operator_methods; ///< Operator methods
 
   // Then the instance variables are set directly by the Module constructor
   std::vector<std::string> templateArgs; ///< Template arguments
@@ -72,7 +75,6 @@ public:
   bool isVirtual; ///< Whether the class is part of a virtual inheritance chain
   bool isSerializable; ///< Whether we can use boost.serialization to serialize the class - creates exports
   bool hasSerialization; ///< Whether we should create the serialization functions
-  bool hasStreaming; ///< Whether it has a operator<< defined - python printable through __str__ and __repr__
   Constructor constructor; ///< Class constructors
   Deconstructor deconstructor; ///< Deconstructor to deallocate C++ object
   bool verbose_; ///< verbose flag
@@ -80,7 +82,7 @@ public:
   /// Constructor creates an empty class
   Class(bool verbose = true) :
       parentClass(boost::none), isVirtual(false), isSerializable(false), hasSerialization(
-          false), hasStreaming(false), deconstructor(verbose), verbose_(verbose) {
+          false), deconstructor(verbose), verbose_(verbose) {
   }
 
   void assignParent(const Qualified& parent);
@@ -114,9 +116,6 @@ public:
 
   /// Post-process classes for serialization markers
   void erase_serialization(); // non-const !
-
-  /// Post-process classes for streaming markers
-  void erase_streaming(); // non-const !
 
   /// verify all of the function arguments
   void verifyAll(std::vector<std::string>& functionNames,
@@ -203,8 +202,8 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
     TypeGrammar classParent_g;
 
     classic::rule<ScannerT> constructor_p, methodName_p, method_p,
-        staticMethodName_p, static_method_p, templateList_p, classParent_p,
-        functions_p, class_p;
+        staticMethodName_p, static_method_p, operatorMethodName_p, operator_method_p,
+        templateList_p, classParent_p, functions_p, class_p;
 
     definition(ClassGrammar const& self) :
         argumentList_g(args), returnValue_g(retVal), //
@@ -221,7 +220,7 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
           [clear_a(args)];
 
       // MethodGrammar
-      methodName_p = lexeme_d[(upper_p | lower_p) >> *(alnum_p | '_' | "<<")];
+      methodName_p = lexeme_d[(upper_p | lower_p) >> *(alnum_p | '_')];
 
       // gtsam::Values retract(const gtsam::VectorValues& delta) const;
       method_p = !methodTemplate_g
@@ -246,6 +245,22 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
               verbose)] //
           [assign_a(retVal, retVal0)][clear_a(args)];
 
+      // OperatorMethodGrammar
+      // NOTE: Operators used in GTSAM: != % & () * *= + ++ += , - -> / < << = == >> [] ^ |
+      operatorMethodName_p = lexeme_d[str_p("operator") >> 
+          (str_p("!=") | '*' | '+' | str_p("+=") | '-' | '/' | str_p("<<") | '=' | str_p("==") )];
+
+      operator_method_p = (returnValue_g 
+              >> operatorMethodName_p[assign_a(methodName)]
+              >> argumentList_g >> !str_p("const")[assign_a(isConst, T)] >> ';'
+              >> *comments_p) //
+          [bl::bind(&OperatorMethod::addOverload,
+              bl::var(self.cls_.operator_methods)[bl::var(methodName)],
+              bl::var(methodName), bl::var(args), bl::var(retVal), boost::none,
+              verbose)] //
+          [assign_a(retVal, retVal0)][clear_a(args)];
+
+
       // template<POSE, POINT>
       templateList_p = (str_p("template") >> '<'
           >> name_p[push_back_a(self.cls_.templateArgs)]
@@ -256,7 +271,7 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
           [bl::bind(&Class::assignParent, bl::var(self.cls_),
               bl::var(possibleParent))][clear_a(possibleParent)];
 
-      functions_p = constructor_p | method_p | static_method_p;
+      functions_p = constructor_p | method_p | static_method_p | operator_method_p;
 
       // parse a full class
       class_p = (!(classTemplate_g[push_back_a(self.cls_.templateArgs,

@@ -178,10 +178,6 @@ void Module::parseMarkup(const std::string& data) {
   BOOST_FOREACH(Class& cls, classes)
     cls.erase_serialization();
 
-  // Post-process classes for streaming markers
-  BOOST_FOREACH(Class& cls, classes)
-    cls.erase_streaming();
-
   // Explicitly add methods to the classes from parents so it shows in documentation
   BOOST_FOREACH(Class& cls, classes)
     cls.appendInheritedMethods(cls, classes);

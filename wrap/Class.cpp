@@ -365,15 +365,6 @@ void Class::erase_serialization() {
 }
 
 /* ************************************************************************* */
-void Class::erase_streaming() {
-  Methods::iterator it = methods_.find("operator<<");
-  if (it != methods_.end()) {
-    hasStreaming = true;
-    methods_.erase(it);
-  }
-}
-
-/* ************************************************************************* */
 void Class::verifyAll(vector<string>& validTypes, bool& hasSerialiable) const {
 
   hasSerialiable |= isSerializable;
@@ -646,11 +637,8 @@ void Class::python_wrapper(FileWriter& wrapperFile) const {
     m.python_wrapper(wrapperFile, name());
   BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values)
     m.python_wrapper(wrapperFile, name());
-  if(hasStreaming) {
-    // NOTE: we should use self_ns to especify the correct str. See https://mail.python.org/pipermail/cplusplus-sig/2005-February/008295.html
-    wrapperFile.oss << "  .def(self_ns::str(self))\n";
-    wrapperFile.oss << "  .def(repr(self))\n";
-  }
+  BOOST_FOREACH(const OperatorMethod& m, operator_methods | boost::adaptors::map_values)
+    m.python_wrapper(wrapperFile, name());
   wrapperFile.oss << ";\n\n";
 }
 
