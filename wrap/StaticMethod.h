@@ -34,6 +34,9 @@ struct StaticMethod: public MethodBase {
     return os;
   }
 
+  // emit python wrapper
+  void python_wrapper(FileWriter& wrapperFile, Str className) const;
+
 protected:
 
   virtual void proxy_header(FileWriter& proxyFile) const;
