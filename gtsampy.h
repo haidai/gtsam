@@ -99,6 +99,7 @@
  *  - TODO: Parse std::string variants and convert directly to special string
  *  - TODO: Add enum support
  *  - TODO: Add generalized serialization support via boost.serialization with hooks to matlab save/load
+ *  - TODO: Fix parser to accept the correct sintax of "operator<<" ->  friend ostream& operator<<(ostream& os, const Point2 &p);
  */
 
 // Pre-def OptionalJacobian to avoid dependency error
@@ -288,6 +289,10 @@ class Point2 {
 
   // enabling serialization functionality
   void serialize() const;
+
+  // enabling __str__ and __repr__
+  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+  ostream operator<<(ostream& os, const Point2 &p);
 };
 //
 //class StereoPoint2 {

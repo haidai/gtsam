@@ -72,6 +72,7 @@ public:
   bool isVirtual; ///< Whether the class is part of a virtual inheritance chain
   bool isSerializable; ///< Whether we can use boost.serialization to serialize the class - creates exports
   bool hasSerialization; ///< Whether we should create the serialization functions
+  bool hasStreaming; ///< Whether it has a operator<< defined - python printable through __str__ and __repr__
   Constructor constructor; ///< Class constructors
   Deconstructor deconstructor; ///< Deconstructor to deallocate C++ object
   bool verbose_; ///< verbose flag
@@ -79,7 +80,7 @@ public:
   /// Constructor creates an empty class
   Class(bool verbose = true) :
       parentClass(boost::none), isVirtual(false), isSerializable(false), hasSerialization(
-          false), deconstructor(verbose), verbose_(verbose) {
+          false), hasStreaming(false), deconstructor(verbose), verbose_(verbose) {
   }
 
   void assignParent(const Qualified& parent);
@@ -113,6 +114,9 @@ public:
 
   /// Post-process classes for serialization markers
   void erase_serialization(); // non-const !
+
+  /// Post-process classes for streaming markers
+  void erase_streaming(); // non-const !
 
   /// verify all of the function arguments
   void verifyAll(std::vector<std::string>& functionNames,
@@ -217,7 +221,7 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
           [clear_a(args)];
 
       // MethodGrammar
-      methodName_p = lexeme_d[(upper_p | lower_p) >> *(alnum_p | '_')];
+      methodName_p = lexeme_d[(upper_p | lower_p) >> *(alnum_p | '_' | "<<")];
 
       // gtsam::Values retract(const gtsam::VectorValues& delta) const;
       method_p = !methodTemplate_g
