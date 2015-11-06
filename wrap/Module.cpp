@@ -495,8 +495,17 @@ void Module::python_code(const string& toolboxPath) const {
   wrapperFile.oss << "NumpyEigenConverter<Vector7>::register_converter();\n";
   wrapperFile.oss << "NumpyEigenConverter<Vector8>::register_converter();\n";
   wrapperFile.oss << "NumpyEigenConverter<Vector9>::register_converter();\n";
-  wrapperFile.oss << "NumpyEigenConverter<Vector10>::register_converter();\n";
-  wrapperFile.oss << "NumpyEigenConverter<Matrix>::register_converter();\n\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector10>::register_converter();\n\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix>::register_converter();\n";
+  // Matrix1 == Vector1
+  wrapperFile.oss << "NumpyEigenConverter<Matrix2>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix3>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix4>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix5>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix6>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix7>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix8>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix9>::register_converter();\n\n";
 
   // write out classes
   BOOST_FOREACH(const Class& cls, expandedClasses)
