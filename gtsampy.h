@@ -331,43 +331,52 @@ class Point2 {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-//
-//class Point3 {
-//  // Standard Constructors
-//  Point3();
-//  Point3(double x, double y, double z);
-//  Point3(Vector v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Point3& p, double tol) const;
-//
-//  // Group
-//  static gtsam::Point3 identity();
-//  gtsam::Point3 inverse() const;
-//  gtsam::Point3 compose(const gtsam::Point3& p2) const;
-//  gtsam::Point3 between(const gtsam::Point3& p2) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Point3 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Point3& p) const;
-//
-//  // Lie Group
-//  static gtsam::Point3 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Point3& p);
-//
-//  // Standard Interface
-//  Vector vector() const;
-//  double x() const;
-//  double y() const;
-//  double z() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
-//
+#include <gtsam/geometry/Point3.h>
+class Point3 {
+ // Standard Constructors
+ Point3();
+ Point3(double x, double y, double z);
+
+ // Advanced Constructors
+ Point3(Vector v);
+
+ // Testable
+ void print(string s) const;
+ bool equals(const gtsam::Point3& p, double tol) const;
+
+ // Group
+ gtsam::Point3 operator-() const;
+ gtsam::Point3 operator+(const Point3 &p) const;
+ gtsam::Point3 operator-(const Point3 &p) const;
+ static gtsam::Point3 identity();
+
+ // Vector Space
+ // gtsam::Point3 unit() const;
+ double norm() const;
+ double distance(const gtsam::Point3 &p) const;
+ double dist(const gtsam::Point3 &p) const;
+ gtsam::Point3 operator*(double s) const;
+ gtsam::Point3 operator*(double s, const gtsam::Point3 &p) const;
+ gtsam::Point3 operator/(double q) const;
+ gtsam::Point3 normalize() const;
+ gtsam::Point3 cross(const gtsam::Point3 &p) const;
+ double dot(const gtsam::Point3 &p) const;
+
+ // Standard Interface
+ bool operator==(const gtsam::Point3 &p) const;
+ double x() const;
+ double y() const;
+ double z() const;
+ Vector vector() const;
+ gtsam::Point3 add(const gtsam::Point3 &p) const;
+ gtsam::Point3 sub(const gtsam::Point3 &p) const;
+  
+ // enabling __str__ and __repr__
+ // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+ ostream operator<<(ostream& os, const Point3 &p);
+
+};
+
 #include <gtsam/geometry/Rot2.h>
 class Rot2 {
   // Standard Constructors and Named Constructors
