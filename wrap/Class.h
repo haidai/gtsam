@@ -248,7 +248,7 @@ struct ClassGrammar: public classic::grammar<ClassGrammar> {
       // OperatorMethodGrammar
       // NOTE: Operators used in GTSAM: != % & () * *= + ++ += , - -> / < << = == >> [] ^ |
       operatorMethodName_p = lexeme_d[str_p("operator") >> 
-          (str_p("!=") | '*' | '+' | str_p("+=") | '-' | '/' | str_p("<<") | '=' | str_p("==") )];
+          (str_p("!=") | '*' | '+' | str_p("+=") | '-' | '/' | str_p("<<") | str_p("==") | '=' )];
 
       operator_method_p = (returnValue_g 
               >> operatorMethodName_p[assign_a(methodName)]
