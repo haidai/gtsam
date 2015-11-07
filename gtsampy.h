@@ -262,6 +262,8 @@ class Point2 {
   // Standard Constructors
   Point2();
   Point2(double x, double y);
+
+  // Advanced Constructor
   Point2(Vector v);
 
   // Testable
@@ -269,30 +271,30 @@ class Point2 {
   bool equals(const gtsam::Point2& pose, double tol) const;
 
   // Group
+  gtsam::Point2 operator-() const;
+  gtsam::Point2 operator+(const Point2 &p) const;
+  gtsam::Point2 operator-(const Point2 &p) const;
   static gtsam::Point2 identity();
-  gtsam::Point2 inverse() const;
 
-  // Manifold
-  gtsam::Point2 retract(Vector v) const;
-  Vector localCoordinates(const gtsam::Point2& p) const;
-
-  // Lie Group
-  static gtsam::Point2 Expmap(Vector v);
-  static Vector Logmap(const gtsam::Point2& p);
+  // Vector Space
+  gtsam::Point2 unit() const;
+  double norm() const;
+  double distance(const gtsam::Point2 &p) const;
+  double dist(const gtsam::Point2 &p) const;
+  gtsam::Point2 operator*(double s) const;
+  gtsam::Point2 operator*(double s, const gtsam::Point2 &p) const;
+  gtsam::Point2 operator/(double q) const;
 
   // Standard Interface
+  bool operator==(const gtsam::Point2 &p) const;
   double x() const;
   double y() const;
   Vector vector() const;
-  double dist(const gtsam::Point2& p2) const;
-  double norm() const;
-
-  // enabling serialization functionality
-  void serialize() const;
 
   // enabling __str__ and __repr__
   // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
   ostream operator<<(ostream& os, const Point2 &p);
+
 };
 //
 //class StereoPoint2 {
