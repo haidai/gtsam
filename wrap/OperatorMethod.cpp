@@ -61,11 +61,33 @@ string OperatorMethod::wrapper_call(FileWriter& wrapperFile, Str cppClassName,
     // indices:      0123456789
 
     // operator <<
-    if( name_.substr(8) == "<<" )
-    {
+    if( operatorSymbol() == "<<" ) {
       // NOTE: we should use self_ns to especify the correct str. See https://mail.python.org/pipermail/cplusplus-sig/2005-February/008295.html
       wrapperFile.oss << "  .def(self_ns::str(self))\n";
       wrapperFile.oss << "  .def(repr(self))\n";
+    } else {
+      BOOST_FOREACH(const ArgumentList& argList, argLists_) {
+        if(argList.empty()) {
+          // The single argument should be the class itself
+          wrapperFile.oss << "  .def(" << operatorSymbol() << "self)\n";
+        } else if(argList.size() == 1){
+          // At least one of the arguments should be the class.
+          if( argList[0].name == className)
+            wrapperFile.oss << "  .def(self " << operatorSymbol() << " other<self>())\n";
+          else
+            wrapperFile.oss << "  .def(self " << operatorSymbol() << " other<" << argList[0].type.name() << ">())\n";
+        } else {
+          std::stringstream ss; ss << "OperatorMethod::python_wrapper " << name_ << " has " << argList.size() << " arguments when it was expected 2 max";
+          throw std::runtime_error( ss.str() );
+        }
+      }
     }
 
   }
+
+std::string OperatorMethod::operatorSymbol() const
+{
+  // name_ format: operatorXX
+  // indices:      0123456789
+  return name_.substr(8);
+}

@@ -54,6 +54,8 @@ private:
 
   virtual std::string wrapper_call(FileWriter& wrapperFile, Str cppClassName,
       Str matlabUniqueName, const ArgumentList& args) const;
+
+  std::string operatorSymbol() const;
 };
 
 } // \namespace wrap
