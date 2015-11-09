@@ -657,12 +657,56 @@ void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
 
       wrapperFile.oss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(";
       // Example macro name: Point2_compose_overloads
-      wrapperFile.oss << name() << m.name() << "_overloads, " << name() << "::" << m.name();
-      wrapperFile.oss << ", " << min << ", " << max << ")\n";
+      wrapperFile.oss << name() << "_" << m.name() << "_overloads, "; // overloadsname
+      wrapperFile.oss << name() << "::" << m.name() << ", ";          // classname::methodname
+      wrapperFile.oss << min << ", " << max << ")\n";                 // arg_min, arg_max
     }
   }
+  BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
+    if(m.nrOverloads() > 1){
+      // // Debug
+      // cout << m << endl;
+      // for(size_t i=0; i < m.nrOverloads(); i++){
+      //   cout << "  ArgList: " << m.argumentList(i) << endl;
+      //   cout << "  RetValue: " <<  m.returnValue(i) << endl;
+      // }
 
-  wrapperFile.oss << "\n";
+      // WRAP USING BOOST PYTHON MACRO
+      // NOTE: Does not work because we the overloaded arguments may be different. 
+      //       What could be done is to find the largest number of overloaded functions 
+      //       and use the BOOST_PYTHON_FUNCION_OVERLOADS to define their overloads 
+      //       wrapping and do the rest mannually, but it's too error prone, so we wrap
+      //       everything manually (see further below). 
+      //       The commented code below DOES NOT WORK. It was left here just to help 
+      //       future implementations.
+      // std::vector<size_t> arglist_sizes(m.nrOverloads());
+      // // find min and max number of arguments
+      // for(size_t i=0; i < m.nrOverloads(); i++){
+      //   arglist_sizes[i] = m.argumentList(i).size();
+      // }
+      // size_t min = *std::min_element(arglist_sizes.begin(),arglist_sizes.end());
+      // size_t max = *std::max_element(arglist_sizes.begin(),arglist_sizes.end());
+      // // Define overloads using the overload macro
+      // wrapperFile.oss << "BOOST_PYTHON_FUNCTION_OVERLOADS(";
+      // // Example macro name: Point2_compose_overloads
+      // wrapperFile.oss << name() << "_" << m.name() << "_overloads, "; // overloadsname
+      // wrapperFile.oss << name() << "::" << m.name() << ", ";          // classname::staticmethodname
+      // wrapperFile.oss << min << ", " << max << ")\n";                 // arg_min, arg_max
+
+      // MANUAL WRAPPING
+      // Static Examples: Rot3    (*Rot3_RzRyRx_0)(double, double, double) = &Rot3::RzRyRx;
+      //                  Rot3    (*Rot3_RzRyRx_1)(const Vector&) = &Rot3::RzRyRx;
+      // Non-Static Examples: Rot3    (Rot3::*Rot3_RzRyRx_0)(double, double, double) = &Rot3::RzRyRx;
+      //                      Rot3    (Rot3::*Rot3_RzRyRx_1)(const Vector&) = &Rot3::RzRyRx;
+      wrapperFile.oss << "// " << this->name() << "\n";
+      for(size_t i=0; i < m.nrOverloads(); i++){
+        wrapperFile.oss << m.returnValue(i) << " (";
+          if(!m.isStatic())
+            wrapperFile.oss << this->name() << "::";
+        wrapperFile.oss << "*" << this->name() << "_" << m.name() << "_" << i << ")" << m.argumentList(i) << " = &" << this->name() << "::" << m.name() << ";\n";
+      }
+    }
+  }
 }
 /* ************************************************************************* */
 

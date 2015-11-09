@@ -419,18 +419,24 @@ class Rot2 {
 class Rot3 {
  // Standard Constructors and Named Constructors
  Rot3();
- Rot3(Matrix R);
- // static gtsam::Rot3 Rx(double t);
- // static gtsam::Rot3 Ry(double t);
- // static gtsam::Rot3 Rz(double t);
- // static gtsam::Rot3 RzRyRx(double x, double y, double z);
- // static gtsam::Rot3 RzRyRx(Vector xyz);
+ Rot3(const Point3 &col1, const Point3 &col2, const Point3 &col3);
+ Rot3(double R11, double R12, double R13,
+      double R21, double R22, double R23,
+      double R31, double R32, double R33);
+ Rot3(const Matrix &R);
+ // Rot3(const Quaternion &q);
+ // static gtsam::Rot3 Random(double t);
+ static gtsam::Rot3 Rx(double t);
+ static gtsam::Rot3 Ry(double t);
+ static gtsam::Rot3 Rz(double t);
+ static gtsam::Rot3 RzRyRx(double x, double y, double z);
+ static gtsam::Rot3 RzRyRx(const Vector& xyz);
  // static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
  // static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
  // static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
  // static gtsam::Rot3 ypr(double y, double p, double r);
  // static gtsam::Rot3 quaternion(double w, double x, double y, double z);
- // static gtsam::Rot3 rodriguez(Vector v);
+ // static gtsam::Rot3 rodriguez(Vector vls);
 
  // Group
  gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;

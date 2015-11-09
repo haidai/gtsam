@@ -134,11 +134,22 @@ string MethodBase::wrapper_fragment(FileWriter& wrapperFile, Str cppClassName,
 
 /* ************************************************************************* */
 void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
-   wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"<< name_;
-    if(nrOverloads() == 1)
-      wrapperFile.oss << ")\n";
-    else
-      wrapperFile.oss << ", " << className << name_ << "_overloads())\n";
+  if(nrOverloads() == 1)
+    // Example: .def("RzRxRy", &Rot3::RzRxRy)
+    wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"<< name_ << ")\n";
+  else {
+    // AUTOMATIC WRAPPING WITH OVERLOAD MACRO
+    //     NOTE: DOES NOT WORK! See comments on Class::python_memberFunctionOverloads
+    // wrapperFile.oss << ", " << className << "_" << name_ << "_overloads())\n";
+
+    // MANUAL WRAPPING
+    //     NOTE: Prototypes defined by calling Class::python_memberFunctionOverloads
+    // Examples: .def("RzRxRy", Rot3_RzRxRy_0)
+    //           .def("RzRxRy", Rot3_RzRxRy_1)
+    for(size_t i=0; i < nrOverloads(); i++){
+      wrapperFile.oss << "  .def(\"" << name_ << "\", " << className << "_" << name_ << "_" << i << ")\n";
+    }
+  }
 }
 
 /* ************************************************************************* */
