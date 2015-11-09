@@ -412,63 +412,80 @@ class Rot2 {
 
   // enabling serialization functionality
   void serialize() const;
+
 };
-//
-//class Rot3 {
-//  // Standard Constructors and Named Constructors
-//  Rot3();
-//  Rot3(Matrix R);
-//  static gtsam::Rot3 Rx(double t);
-//  static gtsam::Rot3 Ry(double t);
-//  static gtsam::Rot3 Rz(double t);
-//  static gtsam::Rot3 RzRyRx(double x, double y, double z);
-//  static gtsam::Rot3 RzRyRx(Vector xyz);
-//  static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
-//  static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
-//  static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
-//  static gtsam::Rot3 ypr(double y, double p, double r);
-//  static gtsam::Rot3 quaternion(double w, double x, double y, double z);
-//  static gtsam::Rot3 rodriguez(Vector v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Rot3& rot, double tol) const;
-//
-//  // Group
-//  static gtsam::Rot3 identity();
-//    gtsam::Rot3 inverse() const;
-//  gtsam::Rot3 compose(const gtsam::Rot3& p2) const;
-//  gtsam::Rot3 between(const gtsam::Rot3& p2) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  //gtsam::Rot3 retractCayley(Vector v) const; // FIXME, does not exist in both Matrix and Quaternion options
-//  gtsam::Rot3 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Rot3& p) const;
-//
-//  // Group Action on Point3
-//  gtsam::Point3 rotate(const gtsam::Point3& p) const;
-//  gtsam::Point3 unrotate(const gtsam::Point3& p) const;
-//
-//  // Standard Interface
-//  static gtsam::Rot3 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Rot3& p);
-//  Matrix matrix() const;
-//  Matrix transpose() const;
-//  gtsam::Point3 column(size_t index) const;
-//  Vector xyz() const;
-//  Vector ypr() const;
-//  Vector rpy() const;
-//  double roll() const;
-//  double pitch() const;
-//  double yaw() const;
-////  Vector toQuaternion() const;  // FIXME: Can't cast to Vector properly
-//  Vector quaternion() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+
+#include <gtsam/geometry/Rot3.h>
+class Rot3 {
+ // Standard Constructors and Named Constructors
+ Rot3();
+ Rot3(Matrix R);
+ // static gtsam::Rot3 Rx(double t);
+ // static gtsam::Rot3 Ry(double t);
+ // static gtsam::Rot3 Rz(double t);
+ // static gtsam::Rot3 RzRyRx(double x, double y, double z);
+ // static gtsam::Rot3 RzRyRx(Vector xyz);
+ // static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
+ // static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
+ // static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
+ // static gtsam::Rot3 ypr(double y, double p, double r);
+ // static gtsam::Rot3 quaternion(double w, double x, double y, double z);
+ // static gtsam::Rot3 rodriguez(Vector v);
+
+ // Group
+ gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;
+ // gtsam::Rot3 inverse() const;
+ gtsam::Rot3 conjugate(const gtsam::Rot3& cRb) const;
+ static gtsam::Rot3 identity();
+
+ // Manifold
+ gtsam::Rot3 retractCayley(Vector v) const;
+ Vector localCayley(const gtsam::Rot3& p) const;
+
+ // Lie Group
+ Matrix AdjointMap() const;
+ static gtsam::Rot3 Expmap(const Vector& v);
+ static Vector Logmap(const gtsam::Rot3& R);
+ static Matrix ExpmapDerivative(const Vector& x);
+ static Matrix LogmapDerivative(const Vector& x);
+
+ // Advanced Interface
+ // enabling __str__ and __repr__
+ // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+ ostream operator<<(ostream& os, const Rot3 &r);
+ // Quaternion toQuaternion() const;
+ // Vector quaternion() const;
+ gtsam::Rot3 slerp(double t, const gtsam::Rot3& other) const;
+
+ // Testable
+ void print(string s) const;
+ bool equals(const gtsam::Rot3& rot, double tol) const;
+
+ // Group Action on Point3
+ // gtsam::Point3 rotate(const gtsam::Point3& p) const;
+ // gtsam::Point3 operator*(const gtsam::Point3& p) const;
+ // gtsam::Point3 unrotate(const gtsam::Point3& p) const;
+
+ // Group Action on Unit3
+ // gtsam::Unit3 rotate(const gtsam::Unit3& p) const;
+ // gtsam::Unit3 unrotate(const gtsam::Unit3& p) const;
+ // gtsam::Unit3 operator*(const gtsam::Unit3& p) const;
+ 
+ // Standard Interface
+ Matrix matrix() const;
+ Matrix transpose() const;
+ gtsam::Point3 column(size_t index) const;
+ gtsam::Point3 r1() const;
+ gtsam::Point3 r2() const;
+ gtsam::Point3 r3() const;
+ // Vector xyz() const;
+ // Vector ypr() const;
+ // Vector rpy() const;
+ // double roll() const;
+ // double pitch() const;
+ // double yaw() const;
+
+};
 //
 //class Pose2 {
 //  // Standard Constructor
