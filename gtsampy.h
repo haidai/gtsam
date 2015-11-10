@@ -423,6 +423,7 @@ class Rot3 {
  Rot3(double R11, double R12, double R13,
       double R21, double R22, double R23,
       double R31, double R32, double R33);
+ Rot3(const Matrix3 &R);
  Rot3(const Matrix &R);
  // Rot3(const Quaternion &q);
  // static gtsam::Rot3 Random(double t);
@@ -435,12 +436,16 @@ class Rot3 {
  static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
  static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
  static gtsam::Rot3 ypr(double y, double p, double r);
+ static gtsam::Rot3 AxisAngle(const Vector3& axis, double angle);
+ static gtsam::Rot3 AxisAngle(const gtsam::Point3& axis, double angle);
+ // static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
  static gtsam::Rot3 quaternion(double w, double x, double y, double z);
- // static gtsam::Rot3 rodriguez(Vector vls);
+ static gtsam::Rot3 Rodrigues(const Vector3& vls);
+ static gtsam::Rot3 Rodrigues(double wx, double wy, double wz);
 
  // Group
  gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;
- // gtsam::Rot3 inverse() const;
+ // gtsam::Rot3 inverse() const; // TODO: Handle inheritance overload
  gtsam::Rot3 conjugate(const gtsam::Rot3& cRb) const;
  static gtsam::Rot3 identity();
 
@@ -468,6 +473,8 @@ class Rot3 {
  bool equals(const gtsam::Rot3& rot, double tol) const;
 
  // Group Action on Point3
+ // TODO: Should implement support for Unit3 to allow wrapping the overload of these methods
+ //       OR define overload prototypes for all methods in all classes
  // gtsam::Point3 rotate(const gtsam::Point3& p) const;
  // gtsam::Point3 operator*(const gtsam::Point3& p) const;
  // gtsam::Point3 unrotate(const gtsam::Point3& p) const;
@@ -484,9 +491,9 @@ class Rot3 {
  gtsam::Point3 r1() const;
  gtsam::Point3 r2() const;
  gtsam::Point3 r3() const;
- // Vector xyz() const;
+ Vector xyz() const;
  Vector3 ypr() const;
- // Vector rpy() const;
+ Vector rpy() const;
  double roll() const;
  double pitch() const;
  double yaw() const;
