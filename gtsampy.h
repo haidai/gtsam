@@ -600,28 +600,42 @@ class Rot3 {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-//
-//#include <gtsam/geometry/Unit3.h>
-//class Unit3 {
-//  // Standard Constructors
-//  Unit3();
-//  Unit3(const gtsam::Point3& pose);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Unit3& pose, double tol) const;
-//
-//  // Other functionality
-//  Matrix basis() const;
-//  Matrix skew() const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Unit3 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Unit3& s) const;
-//};
-//
+
+#include <gtsam/geometry/Unit3.h>
+class Unit3 {
+ // Standard Constructors
+ Unit3();
+ Unit3(const gtsam::Point3& pose);
+ Unit3(const Vector3& pose);
+ Unit3(double x, double y, double z);
+ static gtsam::Unit3 FromPoint3(const gtsam::Point3& point);
+ // static gtsam::Unit3 Random(boost::mt19937 &rng);
+
+ // Other functionality
+ gtsam::Point3 operator*(double s, const gtsam::Unit3& d);
+ // const Matrix32 & basis() const;
+ Matrix3 skew() const;
+ gtsam::Point3 point3() const;
+ // const Vector3 & unitVector() const;
+ Vector2 error(const gtsam::Unit3 &q) const;
+ double distance(const gtsam::Unit3 &q) const;
+
+ // Manifold
+ // enum   CoordinatesMode { EXPMAP, RENORM }
+ size_t dim() const;
+ gtsam::Unit3 retract(const Vector2& v) const;
+ Vector2 localCoordinates(const gtsam::Unit3& s) const;
+ static size_t Dim();
+ 
+ // Testable
+ void print(string s) const;
+ bool equals(const gtsam::Unit3& pose, double tol) const;
+
+ // Public Types
+ // enum    { dimension = 2 }
+
+};
+
 //#include <gtsam/geometry/EssentialMatrix.h>
 //class EssentialMatrix {
 //  // Standard Constructors
