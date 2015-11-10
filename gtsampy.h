@@ -450,6 +450,7 @@ class Rot3 {
  static gtsam::Rot3 identity();
 
  // Manifold
+ // enum   CoordinatesMode { EXPMAP, CAYLEY }
  gtsam::Rot3 retractCayley(Vector v) const;
  Vector localCayley(const gtsam::Rot3& p) const;
 
