@@ -117,6 +117,9 @@ public:
   /// Post-process classes for serialization markers
   void erase_serialization(); // non-const !
 
+  /// Post-process for methods having static and non-static overloads
+  void markStaticMethodsWithNonStaticOverloads(); // non-const!
+
   /// verify all of the function arguments
   void verifyAll(std::vector<std::string>& functionNames,
       bool& hasSerialiable) const;
@@ -154,6 +157,9 @@ public:
   }
 
 private:
+  std::string python_methodOverloadPrototype(const MethodBase& m, size_t i) const;
+
+  std::string python_methodOverloadPrototypeAsFunction(const StaticMethod& m, size_t i) const;
 
   void pointer_constructor_fragments(FileWriter& proxyFile,
       FileWriter& wrapperFile, Str wrapperName,

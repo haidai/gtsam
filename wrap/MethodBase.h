@@ -28,6 +28,10 @@ struct MethodBase: public FullyOverloadedFunction {
 
   typedef const std::string& Str;
 
+  bool hasBothStaticNonStaticOverloads;
+
+  MethodBase() : hasBothStaticNonStaticOverloads(false) {}
+
   // emit a list of comments, one for each overload
   void comment_fragment(FileWriter& proxyFile) const {
     SignatureOverloads::comment_fragment(proxyFile, matlabName());
@@ -61,6 +65,7 @@ protected:
 
   virtual std::string wrapper_call(FileWriter& wrapperFile, Str cppClassName,
       Str matlabUniqueName, const ArgumentList& args) const = 0;
+
 };
 
 } // \namespace wrap

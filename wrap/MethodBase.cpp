@@ -134,7 +134,7 @@ string MethodBase::wrapper_fragment(FileWriter& wrapperFile, Str cppClassName,
 
 /* ************************************************************************* */
 void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
-  if(nrOverloads() == 1)
+  if(nrOverloads() == 1 && !hasBothStaticNonStaticOverloads)
     // Example: .def("RzRxRy", &Rot3::RzRxRy)
     wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"<< name_ << ")\n";
   else {
@@ -147,7 +147,7 @@ void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
     // Examples: .def("RzRxRy", Rot3_RzRxRy_0)
     //           .def("RzRxRy", Rot3_RzRxRy_1)
     for(size_t i=0; i < nrOverloads(); i++){
-      wrapperFile.oss << "  .def(\"" << name_ << "\", " << className << "_" << name_ << "_" << i << ")\n";
+      wrapperFile.oss << "  .def(\"" << name_ << "\", " << (isStatic()? "static_" : "") << className << "_" << name_ << "_" << i << ")\n";
     }
   }
 }
