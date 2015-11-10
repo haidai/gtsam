@@ -68,12 +68,12 @@ string OperatorMethod::wrapper_call(FileWriter& wrapperFile, Str cppClassName,
           // The single argument should be the class itself
           wrapperFile.oss << "  .def(" << operatorSymbol() << "self)\n";
         } else if(argList.size() == 1){
-          // At least one of the arguments should be the class.
           if( argList[0].type.name() == className)
             wrapperFile.oss << "  .def(self " << operatorSymbol() << " self)\n";
           else
             wrapperFile.oss << "  .def(self " << operatorSymbol() << " other<" << argList[0].type.name() << ">())\n";
         } else if(argList.size() == 2){
+          // At least one of the arguments should be the class.
           if( argList[0].type.name() != className && argList[1].type.name() != className ) {
             std::stringstream ss; ss << "OperatorMethod::python_wrapper " << name_ << argList << " should have at least one argument of type " << className;
             throw std::runtime_error( ss.str() );
