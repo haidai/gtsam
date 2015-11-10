@@ -353,7 +353,19 @@ vector<string> Module::GenerateValidTypes(const vector<Class>& classes, const ve
   validTypes.push_back("size_t"); 
   validTypes.push_back("double"); 
   validTypes.push_back("Vector"); 
+  // Accept also vectors with fixed size defined on base/Vector.h
+  for(int i = 1; i <= 10; i++)
+  {
+    std::stringstream ss; ss << "Vector" << i;
+    validTypes.push_back(ss.str()); 
+  }
   validTypes.push_back("Matrix"); 
+  // Accept also matrices with fixed size defined on base/Matrix.h
+  for(int i = 1; i <= 9; i++)
+  {
+    std::stringstream ss; ss << "Matrix" << i;
+    validTypes.push_back(ss.str()); 
+  }
   //Create a list of parsed classes for dependency checking 
   BOOST_FOREACH(const Class& cls, classes) { 
     validTypes.push_back(cls.qualifiedName("::")); 

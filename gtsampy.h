@@ -434,7 +434,7 @@ class Rot3 {
  static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
  static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
  static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
- // static gtsam::Rot3 ypr(double y, double p, double r);
+ static gtsam::Rot3 ypr(double y, double p, double r);
  static gtsam::Rot3 quaternion(double w, double x, double y, double z);
  // static gtsam::Rot3 rodriguez(Vector vls);
 
@@ -485,7 +485,7 @@ class Rot3 {
  gtsam::Point3 r2() const;
  gtsam::Point3 r3() const;
  // Vector xyz() const;
- // Vector3 ypr() const;
+ Vector3 ypr() const;
  // Vector rpy() const;
  double roll() const;
  double pitch() const;
