@@ -432,10 +432,10 @@ class Rot3 {
  static gtsam::Rot3 RzRyRx(double x, double y, double z);
  static gtsam::Rot3 RzRyRx(const Vector& xyz);
  static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
- // static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
- // static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
+ static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
+ static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
  // static gtsam::Rot3 ypr(double y, double p, double r);
- // static gtsam::Rot3 quaternion(double w, double x, double y, double z);
+ static gtsam::Rot3 quaternion(double w, double x, double y, double z);
  // static gtsam::Rot3 rodriguez(Vector vls);
 
  // Group
@@ -460,7 +460,7 @@ class Rot3 {
  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
  ostream operator<<(ostream& os, const Rot3 &r);
  // Quaternion toQuaternion() const;
- // Vector quaternion() const;
+ Vector quaternion() const;
  gtsam::Rot3 slerp(double t, const gtsam::Rot3& other) const;
 
  // Testable
@@ -485,10 +485,10 @@ class Rot3 {
  gtsam::Point3 r2() const;
  gtsam::Point3 r3() const;
  // Vector xyz() const;
- // Vector ypr() const;
+ // Vector3 ypr() const;
  // Vector rpy() const;
- // double roll() const;
- // double pitch() const;
+ double roll() const;
+ double pitch() const;
  double yaw() const;
 
 };
