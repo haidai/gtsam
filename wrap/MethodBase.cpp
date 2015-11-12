@@ -146,9 +146,18 @@ void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
     //     NOTE: Prototypes defined by calling Class::python_memberFunctionOverloads
     // Examples: .def("RzRxRy", Rot3_RzRxRy_0)
     //           .def("RzRxRy", Rot3_RzRxRy_1)
-    for(size_t i=0; i < nrOverloads(); i++){
-      wrapperFile.oss << "  .def(\"" << name_ << "\", " << (isStatic()? "static_" : "") << className << "_" << name_ << "_" << i << ")\n";
+    SignatureGroupList sigGroupList = groupSignatureOverloads();
+    for(size_t i=0; i < sigGroupList.size(); i++){
+      wrapperFile.oss << "  .def(\"" << name_ << "\", " << python_funcPointerName(name_, i);
+      if(sigGroupList[i].signatureList().size() > 1) {
+        wrapperFile.oss << ", " << python_overloadName(className,name_,i) << "()";
+      }
+      wrapperFile.oss << ")\n";
     }
+
+    // for(size_t i=0; i < nrOverloads(); i++){
+    //   wrapperFile.oss << "  .def(\"" << name_ << "\", " << (isStatic()? "static_" : "") << className << "_" << name_ << "_" << i << ")\n";
+    // }
   }
 }
 
