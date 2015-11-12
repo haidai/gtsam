@@ -134,4 +134,9 @@ std::string qualifiedName(const std::string& separator, const std::vector<std::s
 void createNamespaceStructure(const std::vector<std::string>& namespaces,
     const std::string& toolboxPath);
 
+std::string python_overloadName(std::string className, std::string methodName, size_t index);
+
+std::string python_funcPointerName(std::string functionName, size_t index);
+
 } // \namespace wrap
+
