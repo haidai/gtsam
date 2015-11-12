@@ -679,70 +679,6 @@ void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
       }
     }
   }
-
-
-  // NOTE1: Automatic wrapping using the boost python macro does not work because 
-  //       the overloaded arguments may be different. 
-  //       What could be done is to find the largest number of overloaded functions 
-  //       and use the BOOST_PYTHON_FUNCION_OVERLOADS to define their overloads 
-  //       wrapping and do the rest mannually, but it's too error prone, so we wrap
-  //       everything manually here. 
-  //       The following commented code could be used as base for a more intelligent
-  //       implementation.
-  // std::vector<size_t> arglist_sizes(m.nrOverloads());
-  // // find min and max number of arguments
-  // for(size_t i=0; i < m.nrOverloads(); i++){
-  //   arglist_sizes[i] = m.argumentList(i).size();
-  // }
-  // size_t min = *std::min_element(arglist_sizes.begin(),arglist_sizes.end());
-  // size_t max = *std::max_element(arglist_sizes.begin(),arglist_sizes.end());
-  // // Define overloads using the overload macro
-  // wrapperFile.oss << "BOOST_PYTHON_FUNCTION_OVERLOADS(";
-  // // Example macro name: Point2_compose_overloads
-  // wrapperFile.oss << name() << "_" << m.name() << "_overloads, "; // overloadsname
-  // wrapperFile.oss << name() << "::" << m.name() << ", ";          // classname::staticmethodname
-  // wrapperFile.oss << min << ", " << max << ")\n";                 // arg_min, arg_max
-
-  // NOTE2: Boost Python does not support static methods being overloaded with a 
-  //        non-static one. The workaround for this is to detect when a methods have 
-  //        both static and non-static versions (the flag hasBothStaticNonStaticOverloads
-  //        in MethodBase, set by Class::markStaticMethodsWithNonStaticOverloads), and 
-  //        then declare non-static prototypes of this methods as functions. Doing this
-  //        way, the method can still be called from python from a object. For example:
-  //        advanced constructor 'static Rot3 Rot3::yaw(double t)' has a non-static 
-  //        overload double Rot3::yaw(), so both functions can be called in python as:
-  // 
-  //        >>> r = gtsam.Rot3().yaw(0.5) # Note the instanciation through 'Rot3()'
-  //        >>> r.yaw()                   # Access yaw value of r
-  //        
-  //         Methods with static-only overloads can be called normally from python:
-  // 
-  //        >>> r1 = gtsam.Rot3.Rx(0.5)
-  //        >>> r2 = gtsam.Rot3.RzRyRx(0.5,0.4,0.3)
-  // 
-  //        See: https://mail.python.org/pipermail/cplusplus-sig/2003-September/005341.html
-  //             http://code.activestate.com/lists/python-cplusplus-sig/%3Cuoexex0xc.fsf@boost-consulting.com%3E/
-
-
-  // // wrapperFile.oss << "// " << this->name() << "\n";
-  // BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
-  //   if(m.nrOverloads() > 1 || m.hasBothStaticNonStaticOverloads){
-  //     for(size_t i=0; i < m.nrOverloads(); i++){
-  //       wrapperFile.oss << python_methodOverloadPrototype(m,i);
-  //     }
-  //   }
-  // }
-  // BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
-  //   if(m.nrOverloads() > 1 || m.hasBothStaticNonStaticOverloads){
-  //     for(size_t i=0; i < m.nrOverloads(); i++){
-  //       if(m.hasBothStaticNonStaticOverloads) {
-  //         wrapperFile.oss << python_methodOverloadPrototypeAsFunction(m,i);
-  //       }else{
-  //         wrapperFile.oss << python_methodOverloadPrototype(m,i);
-  //       }
-  //     }
-  //   }
-  // }
 }
 
 
@@ -784,53 +720,6 @@ std::string Class::python_staticMemberFunctionPointer(const StaticMethod& m, con
   std::stringstream ss;
   ss << sig.retValue << " (*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << m.name() << ";\n";
   return ss.str();  
-}
-
-/* ************************************************************************* */
-std::string Class::python_methodOverloadPrototype(const MethodBase& mb, size_t i) const
-{
-  // - Static: 
-  //     Rot3    (*static_Rot3_RzRyRx_0)(double, double, double) = &Rot3::RzRyRx;
-  //     Rot3    (*static_RzRyRx_1)(const Vector&) = &Rot3::RzRyRx;
-  // - Non-Static: 
-  //     Rot3    (Rot3::*Rot3_RzRyRx_0)(double, double, double) = &Rot3::RzRyRx;
-  //     Rot3    (Rot3::*Rot3_RzRyRx_1)(const Vector&) = &Rot3::RzRyRx;
-  std::stringstream ss;
-  ss << mb.returnValue(i) << " (";
-  if(mb.isStatic())
-    ss << "*static_"; 
-  else
-    ss << this->name() << "::*";
-  ss << this->name() << "_" << mb.name() << "_" << i << ")" << mb.argumentList(i);
-
-  // We need to dynamic cast here because isConst is a method of class Method, not MethodBase
-  const Method* m = dynamic_cast<const Method*>(&mb);
-  if(m != NULL) {
-    if(m->isConst()) ss<< " const";
-  }
-
-  ss << " = &" << this->name() << "::" << mb.name() << ";\n";
-  return ss.str();
-}
-
-/* ************************************************************************* */
-std::string Class::python_methodOverloadPrototypeAsFunction(const StaticMethod& m, size_t i) const
-{
-  // Examples:
-  //     Rot3 Rot3_yaw_1(const gtsam::Rot3&, double x0) { return gtsam::Rot3::yaw(x0); }
-  std::stringstream ss;
-  ss << m.returnValue(i) << " static_" << this->name() << "_" << m.name() << "_" << i << "(" << this->name() << "&, ";
-  for(size_t j = 0; j < m.argumentList(i).size(); j++) {
-    ss << m.argumentList(i)[j] << " x" << j;
-    if(j < m.argumentList(i).size()-1) ss << ", ";
-  }
-  ss << ") { return " << this->name() << "::" << m.name() << "(";
-  for(size_t j = 0; j < m.argumentList(i).size(); j++) {
-    ss << "x" << j;
-    if(j < m.argumentList(i).size()-1) ss << ", ";
-  }
-  ss << "); }\n";
-  return ss.str();
 }
 
 /* ************************************************************************* */

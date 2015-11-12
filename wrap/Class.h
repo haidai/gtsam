@@ -165,10 +165,6 @@ private:
 
   std::string python_staticMemberFunctionPointer(const StaticMethod& m, const Signature& sig, size_t i) const;
 
-  std::string python_methodOverloadPrototype(const MethodBase& m, size_t i) const;
-
-  std::string python_methodOverloadPrototypeAsFunction(const StaticMethod& m, size_t i) const;
-
   void pointer_constructor_fragments(FileWriter& proxyFile,
       FileWriter& wrapperFile, Str wrapperName,
       std::vector<std::string>& functionNames) const;
