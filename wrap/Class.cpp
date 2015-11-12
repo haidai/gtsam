@@ -703,12 +703,12 @@ std::string Class::python_staticMemberFunctionOverloadMacro(const StaticMethod& 
 }
 
 /* ************************************************************************* */
-std::string Class::python_memberFunctionPointer(const MethodBase& mb, const Signature& sig, size_t i) const
+std::string Class::python_memberFunctionPointer(const Method& m, const Signature& sig, size_t i) const
 {
   // Example: 
   //    bool    (X::*f1)(int, double, char)    = &X::f;
   std::stringstream ss;
-  ss << sig.retValue << " (" << this->name() << "::*" << python_funcPointerName(mb.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << mb.name() << ";\n";
+  ss << sig.retValue << " (" << this->name() << "::*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << (m.isConst()? " const" : "") << " = &" << this->name() << "::" << m.name() << ";\n";
   return ss.str();  
 }
 

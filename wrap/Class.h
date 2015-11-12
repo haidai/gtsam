@@ -161,7 +161,7 @@ private:
 
   std::string python_staticMemberFunctionOverloadMacro(const StaticMethod& m, const SignatureGroup& sigGroup, size_t i) const;
 
-  std::string python_memberFunctionPointer(const MethodBase& m, const Signature& sig, size_t i) const;
+  std::string python_memberFunctionPointer(const Method& m, const Signature& sig, size_t i) const;
 
   std::string python_staticMemberFunctionPointer(const StaticMethod& m, const Signature& sig, size_t i) const;
 
