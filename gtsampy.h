@@ -550,57 +550,56 @@ class Rot3 {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-//
-//class Pose3 {
-//  // Standard Constructors
-//  Pose3();
-//  Pose3(const gtsam::Pose3& pose);
-//  Pose3(const gtsam::Rot3& r, const gtsam::Point3& t);
-//  Pose3(const gtsam::Pose2& pose2); // FIXME: shadows Pose3(Pose3 pose)
-//  Pose3(Matrix t);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Pose3& pose, double tol) const;
-//
-//  // Group
-//  static gtsam::Pose3 identity();
-//  gtsam::Pose3 inverse() const;
-//  gtsam::Pose3 compose(const gtsam::Pose3& p2) const;
-//  gtsam::Pose3 between(const gtsam::Pose3& p2) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Pose3 retract(Vector v) const;
-//  gtsam::Pose3 retractFirstOrder(Vector v) const;
-//  Vector localCoordinates(const gtsam::Pose3& T2) const;
-//
-//  // Lie Group
-//  static gtsam::Pose3 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Pose3& p);
-//  Matrix AdjointMap() const;
-//  Vector Adjoint(Vector xi) const;
-//  static Matrix wedge(double wx, double wy, double wz, double vx, double vy, double vz);
-//
-//  // Group Action on Point3
-//  gtsam::Point3 transform_from(const gtsam::Point3& p) const;
-//  gtsam::Point3 transform_to(const gtsam::Point3& p) const;
-//
-//  // Standard Interface
-//  gtsam::Rot3 rotation() const;
-//  gtsam::Point3 translation() const;
-//  double x() const;
-//  double y() const;
-//  double z() const;
-//  Matrix matrix() const;
-//  gtsam::Pose3 transform_to(const gtsam::Pose3& pose) const; // FIXME: shadows other transform_to()
-//  double range(const gtsam::Point3& point);
-//  double range(const gtsam::Pose3& pose);
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+
+#include <gtsam/geometry/Pose3.h>
+class Pose3 {
+  // Group
+  // gtsam::Pose3 inverse() const; // TODO: Add support for overload through inheritance
+  gtsam::Pose3 operator*(const Pose3& T) const;
+  static gtsam::Pose3 identity();
+
+ //  //Lie Group
+ //  // TODO
+
+  // Advanced Interface
+  ostream operator<<(ostream& os, const gtsam::Point3 &p);
+  // static std::pair< size_t, size_t >  translationInterval();
+  // static std::pair< size_t, size_t >  rotationInterval();
+
+ // // Standard Constructors
+ Pose3();
+ Pose3(const gtsam::Pose3& pose);
+ Pose3(const gtsam::Rot3& r, const gtsam::Point3& t);
+ // TODO: Add support for Pose2 first
+ // Pose3(const gtsam::Pose2& pose2); // FIXME: shadows Pose3(Pose3 pose)
+ Pose3(const Matrix& t);
+
+ // // Testable
+ void print(string s) const;
+ bool equals(const gtsam::Pose3& pose) const;
+ bool equals(const gtsam::Pose3& pose, double tol) const;
+
+ // // Group Action on Point3
+ gtsam::Point3 transform_from(const gtsam::Point3 &p) const;
+ gtsam::Point3 operator*(const gtsam::Point3 &p) const;
+ // TODO: Add support for OptionalJacobian and proper overload the method
+ // gtsam::Point3 transform_to(const gtsam::Point3 &p) const;
+
+ // Standard Interface
+ // gtsam::Rot3 rotation() const;
+ // gtsam::Point3 translation() const;
+ double x() const;
+ double y() const;
+ double z() const;
+ Matrix4 matrix() const;
+ // TODO: Add support for OptionalJacobian and proper overload the method
+ // gtsam::Pose3 transform_to(const gtsam::Pose3& pose) const; // FIXME: shadows other transform_to()
+ // TODO: Add support for OptionalJacobian to wrap range methods
+ // double range(const gtsam::Point3& point) const;
+ // double range(const gtsam::Pose3& pose) const;
+ gtsam::Unit3 bearing(const gtsam::Point3& point) const;
+
+};
 
 #include <gtsam/geometry/Unit3.h>
 class Unit3 {
