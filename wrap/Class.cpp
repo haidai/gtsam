@@ -668,6 +668,17 @@ void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
       }
     }
   }
+  BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
+    if(m.nrOverloads() > 1){
+      SignatureGroupList sigGroupList = m.groupSignatureOverloads();
+      for(size_t i=0; i < sigGroupList.size(); i++){
+        if(sigGroupList[i].signatureList().size() > 1) {
+          wrapperFile.oss << python_staticMemberFunctionOverloadMacro(m, sigGroupList[i], i);
+        }
+        wrapperFile.oss << python_staticMemberFunctionPointer(m, sigGroupList[i].mainSignature(), i);
+      }
+    }
+  }
 
 
   // NOTE1: Automatic wrapping using the boost python macro does not work because 
@@ -741,11 +752,21 @@ std::string Class::python_memberFunctionOverloadMacro(const MethodBase& mb, cons
   // Example: 
   //    BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Point2_f_overloads1, f, 1, 4)
   std::stringstream ss;
-  // ss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(" << this->name() << "_" << mb.name() << "_overloads" << i << ", " << mb.name() << ", " << sigGroup.minArgs() << ", " << sigGroup.maxArgs() << ")\n";
   ss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(" << python_overloadName(this->name(),mb.name(),i) << ", " << mb.name() << ", " << sigGroup.minArgs() << ", " << sigGroup.maxArgs() << ")\n";
   return ss.str();
 }
 
+/* ************************************************************************* */
+std::string Class::python_staticMemberFunctionOverloadMacro(const StaticMethod& m, const SignatureGroup& sigGroup, size_t i) const
+{
+  // Example: 
+  //    BOOST_PYTHON_FUNCTION_OVERLOADS(Point2_f_overloads1, f, 1, 4)
+  std::stringstream ss;
+  ss << "BOOST_PYTHON_FUNCTION_OVERLOADS(" << python_overloadName(this->name(),m.name(),i) << ", " << m.name() << ", " << sigGroup.minArgs() << ", " << sigGroup.maxArgs() << ")\n";
+  return ss.str();
+}
+
+/* ************************************************************************* */
 std::string Class::python_memberFunctionPointer(const MethodBase& mb, const Signature& sig, size_t i) const
 {
   // Example: 
@@ -755,6 +776,15 @@ std::string Class::python_memberFunctionPointer(const MethodBase& mb, const Sign
   return ss.str();  
 }
 
+/* ************************************************************************* */
+std::string Class::python_staticMemberFunctionPointer(const StaticMethod& m, const Signature& sig, size_t i) const
+{
+  // Example: 
+  //    bool    (*f1)(int, double, char)    = &X::f;
+  std::stringstream ss;
+  ss << sig.retValue << " (*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << m.name() << ";\n";
+  return ss.str();  
+}
 
 /* ************************************************************************* */
 std::string Class::python_methodOverloadPrototype(const MethodBase& mb, size_t i) const
@@ -802,4 +832,3 @@ std::string Class::python_methodOverloadPrototypeAsFunction(const StaticMethod& 
   ss << "); }\n";
   return ss.str();
 }
-
