@@ -803,19 +803,3 @@ std::string Class::python_methodOverloadPrototypeAsFunction(const StaticMethod& 
   return ss.str();
 }
 
-/* ************************************************************************* */
-void Class::markStaticMethodsWithNonStaticOverloads()
-{
-  // For each static method, check if we have a non-static method with the same name 
-  // in the methods list, and mark the static method if we do.
-  BOOST_FOREACH(StaticMethod& sm, static_methods | boost::adaptors::map_values){
-    BOOST_FOREACH( Method& m, methods_ | boost::adaptors::map_values){
-      if(sm.name() == m.name()) {
-        m.hasBothStaticNonStaticOverloads = true;
-        sm.hasBothStaticNonStaticOverloads = true;
-        // break;
-      }
-    }
-  }  
-}
-

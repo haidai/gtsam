@@ -28,10 +28,6 @@ struct MethodBase: public FullyOverloadedFunction {
 
   typedef const std::string& Str;
 
-  bool hasBothStaticNonStaticOverloads;
-
-  MethodBase() : hasBothStaticNonStaticOverloads(false) {}
-
   // emit a list of comments, one for each overload
   void comment_fragment(FileWriter& proxyFile) const {
     SignatureOverloads::comment_fragment(proxyFile, matlabName());

@@ -134,7 +134,7 @@ string MethodBase::wrapper_fragment(FileWriter& wrapperFile, Str cppClassName,
 
 /* ************************************************************************* */
 void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
-  if(nrOverloads() == 1 && !hasBothStaticNonStaticOverloads)
+  if(nrOverloads() == 1)
     // Example: .def("RzRxRy", &Rot3::RzRxRy)
     wrapperFile.oss << "  .def(\"" << name_ << "\", &" << className << "::"<< name_ << ")\n";
   else {

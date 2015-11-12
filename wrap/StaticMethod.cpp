@@ -60,5 +60,5 @@ string StaticMethod::wrapper_call(FileWriter& wrapperFile, Str cppClassName,
   void StaticMethod::python_wrapper(FileWriter& wrapperFile, Str className) const
   {
     MethodBase::python_wrapper(wrapperFile, className);
-    if(!hasBothStaticNonStaticOverloads) wrapperFile.oss << "  .staticmethod(\"" << name_ << "\")\n";
+    wrapperFile.oss << "  .staticmethod(\"" << name_ << "\")\n";
   }
