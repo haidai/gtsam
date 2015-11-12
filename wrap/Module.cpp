@@ -188,6 +188,10 @@ void Module::parseMarkup(const std::string& data) {
   expandedClasses = ExpandTypedefInstantiations(classes,
       templateInstantiationTypedefs);
 
+  // Post-process classes to remove static and non-static overloads
+  BOOST_FOREACH(Class& cls, expandedClasses)
+    cls.erase_staticNonStaticOverloads();
+
   // Dependency check list
   vector<string> validTypes = GenerateValidTypes(expandedClasses,
       forward_declarations);

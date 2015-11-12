@@ -832,3 +832,25 @@ std::string Class::python_methodOverloadPrototypeAsFunction(const StaticMethod& 
   ss << "); }\n";
   return ss.str();
 }
+
+/* ************************************************************************* */
+void Class::erase_staticNonStaticOverloads()
+{
+  std::set<std::string> static_and_non_static;
+
+  BOOST_FOREACH(const StaticMethod& sm, static_methods | boost::adaptors::map_values){
+    BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
+      if(sm.name() == m.name()) {
+        cerr << "Warning: method " << this->name() << "::" << m.name() << " has both static and non-static overloads and cannot be wrapped!" << endl;
+        static_and_non_static.insert(m.name());
+        break;
+      }
+    }
+  }
+
+  BOOST_FOREACH(const std::string& s, static_and_non_static) {
+    methods_.erase(s);
+    static_methods.erase(s);
+  }
+
+}

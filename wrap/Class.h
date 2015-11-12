@@ -117,6 +117,9 @@ public:
   /// Post-process classes for serialization markers
   void erase_serialization(); // non-const !
 
+  /// Post-process classes to remove static and non-static overloads
+  void erase_staticNonStaticOverloads(); // non-const !
+
   /// verify all of the function arguments
   void verifyAll(std::vector<std::string>& functionNames,
       bool& hasSerialiable) const;
