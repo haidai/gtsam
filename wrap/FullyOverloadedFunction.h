@@ -19,6 +19,7 @@
 #pragma once
 
 #include "OverloadedFunction.h"
+#include "Signature.h"
 
 namespace wrap {
 
@@ -107,6 +108,16 @@ public:
 class FullyOverloadedFunction: public Function, public SignatureOverloads {
 
 public:
+
+  SignatureGroupList groupSignatureOverloads() const {
+    SignatureGroupList sigGroupList;
+    for (size_t i = 0; i < nrOverloads(); i++)
+    {
+      sigGroupList.addSignature(argLists_[i],returnVals_[i]);
+    }
+    return sigGroupList;
+  }
+
 
   bool addOverload(const std::string& name, const ArgumentList& args,
       const ReturnValue& retVal, boost::optional<const Qualified> instName =
