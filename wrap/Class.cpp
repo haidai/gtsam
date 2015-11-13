@@ -655,6 +655,9 @@ void printSignatureGroupList(const MethodBase& mb)
 }
 
 /* ************************************************************************* */
+// This method is a dispatcher to create the proper prototypes and macros for overloading.
+// Check the functions being called to feed wrapperFile.oss for examples of lines this in
+// the method will write in the generated file.
 void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
   // wrapperFile.oss << "// " << this->name() << "\n";
   BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
