@@ -102,9 +102,6 @@
  *  - TODO: Fix parser to accept the correct sintax of "operator<<" ->  friend ostream& operator<<(ostream& os, const Point2 &p);
  */
 
-// Pre-def OptionalJacobian to avoid dependency error
-class gtsam::OptionalJacobian;
-
 //namespace std {
 //    #include <vector>
 //    template<T>
@@ -147,6 +144,32 @@ namespace gtsam {
 //// base
 ////*************************************************************************
 //
+// #include <gtsam/base/OptionalJacobian.h>
+// Pre-def OptionalJacobian to avoid dependency error
+// class gtsam::OptionalJacobian;
+// template<Rows,Cols>
+// class OptionalJacobian {
+//   OptionalJacobian();
+//   // OptionalJacobian(Jacobian& fixed);
+//   // OptionalJacobian(Jacobian* fixedPtr);
+//   // OptionalJacobian(Eigen::MatrixXd& dynamic);
+//   // OptionalJacobian(boost::none_t);
+//   // OptionalJacobian(const boost::optional<Eigen::MatrixXd & > optional);
+//   // operator bool() const;
+//   // Eigen::Map<Jacobian>& operator*();
+//   // Eigen::Map<Jacobian>* operator->();
+
+//   // template<N>
+//   // OptionalJacobian<Rows, N> cols(int startCol);
+
+// };
+
+// // TODO(Ellon): Add support to numbers as template parameters in the wrapper grammar to allow the typedef below.
+// //              Check TypeGrammar and TypeListGrammar in wrap/Qualified.h
+// typedef gtsam::OptionalJacobian<2, 3> OptionalJacobian23;
+// typedef gtsam::OptionalJacobian<3, 3> OptionalJacobian33;
+// 
+// 
 ///** gtsam namespace functions */
 //bool linear_independent(Matrix A, Matrix B, double tol);
 //
