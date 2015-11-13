@@ -468,7 +468,8 @@ class Rot3 {
 
  // Group
  gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;
- // gtsam::Rot3 inverse() const; // TODO: Handle inheritance overload
+ // TODO(Ellon): Handle inheritance overload to allow calling inverse
+ // gtsam::Rot3 inverse() const; 
  gtsam::Rot3 conjugate(const gtsam::Rot3& cRb) const;
  static gtsam::Rot3 identity();
 
@@ -497,16 +498,15 @@ class Rot3 {
  bool equals(const gtsam::Rot3& rot, double tol) const;
 
  // Group Action on Point3
- // TODO: Should implement support for Unit3 to allow wrapping the overload of these methods
- //       OR define overload prototypes for all methods in all classes
- // gtsam::Point3 rotate(const gtsam::Point3& p) const;
- // gtsam::Point3 operator*(const gtsam::Point3& p) const;
+ // TODO(Ellon): Should add support to OptionalJacobian to first to allow the correct function pointer to be defined and then allow the overloading of rotate(Point3) with rotate(Unit3)
+ // gtsam::Point3 rotate(const gtsam::Point3& p, gtsam::OptionalJacobian H1) const;
+ gtsam::Point3 operator*(const gtsam::Point3& p) const;
  // gtsam::Point3 unrotate(const gtsam::Point3& p) const;
 
  // Group Action on Unit3
  // gtsam::Unit3 rotate(const gtsam::Unit3& p) const;
+ gtsam::Unit3 operator*(const gtsam::Unit3& p) const;
  // gtsam::Unit3 unrotate(const gtsam::Unit3& p) const;
- // gtsam::Unit3 operator*(const gtsam::Unit3& p) const;
  
  // Standard Interface
  Matrix matrix() const;
@@ -577,7 +577,8 @@ class Rot3 {
 #include <gtsam/geometry/Pose3.h>
 class Pose3 {
   // Group
-  // gtsam::Pose3 inverse() const; // TODO: Add support for overload through inheritance
+  // TODO(Ellon): Handle inheritance overload to allow calling inverse
+  // gtsam::Pose3 inverse() const;
   gtsam::Pose3 operator*(const Pose3& T) const;
   static gtsam::Pose3 identity();
 
@@ -593,7 +594,7 @@ class Pose3 {
  Pose3();
  Pose3(const gtsam::Pose3& pose);
  Pose3(const gtsam::Rot3& r, const gtsam::Point3& t);
- // TODO: Add support for Pose2 first
+ // TODO(Ellon): Add support for Pose2 first
  // Pose3(const gtsam::Pose2& pose2); // FIXME: shadows Pose3(Pose3 pose)
  Pose3(const Matrix& t);
 
@@ -605,19 +606,22 @@ class Pose3 {
  // // Group Action on Point3
  gtsam::Point3 transform_from(const gtsam::Point3 &p) const;
  gtsam::Point3 operator*(const gtsam::Point3 &p) const;
- // TODO: Add support for OptionalJacobian and proper overload the method
+ // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
  // gtsam::Point3 transform_to(const gtsam::Point3 &p) const;
 
  // Standard Interface
+ // TODO(Ellon): The return value here is in fact 'const gtsam::Rot3&', and boost python doesn't now how to handle this return value.
+ //              Thus we need to define a return value policy to wrap functions returning 'const gtsam::Rot3&'. Also, the wrapper grammar 
+ //              does not accept 'const' and '&' in the return values.
  // gtsam::Rot3 rotation() const;
  // gtsam::Point3 translation() const;
  double x() const;
  double y() const;
  double z() const;
  Matrix4 matrix() const;
- // TODO: Add support for OptionalJacobian and proper overload the method
+ // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
  // gtsam::Pose3 transform_to(const gtsam::Pose3& pose) const; // FIXME: shadows other transform_to()
- // TODO: Add support for OptionalJacobian to wrap range methods
+ // TODO(Ellon): Add support for OptionalJacobian to wrap range methods
  // double range(const gtsam::Point3& point) const;
  // double range(const gtsam::Pose3& pose) const;
  gtsam::Unit3 bearing(const gtsam::Point3& point) const;
