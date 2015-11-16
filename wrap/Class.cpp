@@ -711,7 +711,7 @@ std::string Class::python_memberFunctionPointer(const Method& m, const Signature
   // Example: 
   //    bool    (X::*f1)(int, double, char)    = &X::f;
   std::stringstream ss;
-  ss << sig.retValue << " (" << this->name() << "::*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << (m.isConst()? " const" : "") << " = &" << this->name() << "::" << m.name() << ";\n";
+  ss << sig.retValue.python_return_type() << " (" << this->name() << "::*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << (m.isConst()? " const" : "") << " = &" << this->name() << "::" << m.name() << ";\n";
   return ss.str();  
 }
 
@@ -721,7 +721,7 @@ std::string Class::python_staticMemberFunctionPointer(const StaticMethod& m, con
   // Example: 
   //    bool    (*f1)(int, double, char)    = &X::f;
   std::stringstream ss;
-  ss << sig.retValue << " (*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << m.name() << ";\n";
+  ss << sig.retValue.python_return_type() << " (*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << m.name() << ";\n";
   return ss.str();  
 }
 

@@ -32,6 +32,15 @@ string ReturnValue::return_type(bool add_ptr) const {
 }
 
 /* ************************************************************************* */
+string ReturnValue::python_return_type() const {
+  if (isPair)
+    return "std::pair< " + type1.python_str() + ", " + type2.python_str() + " >";
+  else
+    return type1.python_str();
+
+}
+
+/* ************************************************************************* */
 string ReturnValue::matlab_returnType() const {
   return isPair ? "[first,second]" : "result";
 }

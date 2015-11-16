@@ -58,6 +58,8 @@ private:
 
   std::string str(bool add_ptr) const;
 
+  std::string python_str() const;
+
   /// Example: out[1] = wrap_shared_ptr(pairResult.second,"Test", false);
   void wrap_result(const std::string& out, const std::string& result,
       FileWriter& wrapperFile, const TypeAttributesTable& typeAttributes) const;

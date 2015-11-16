@@ -58,6 +58,8 @@ struct ReturnValue {
 
   std::string return_type(bool add_ptr) const;
 
+  std::string python_return_type() const;
+
   std::string matlab_returnType() const;
 
   void wrap_result(const std::string& result, FileWriter& wrapperFile,
