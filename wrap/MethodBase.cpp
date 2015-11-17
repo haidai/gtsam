@@ -152,6 +152,9 @@ void MethodBase::python_wrapper(FileWriter& wrapperFile, Str className) const {
       if(sigGroupList[i].signatureList().size() > 1) {
         wrapperFile.oss << ", " << python_overloadName(className,name_,i) << "()";
       }
+      if(sigGroupList[i].mainSignature().retValue.type1.isRef){
+        wrapperFile.oss << ", return_internal_reference<>()";
+      }
       wrapperFile.oss << ")\n";
     }
 
