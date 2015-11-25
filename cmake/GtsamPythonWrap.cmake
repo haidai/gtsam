@@ -149,7 +149,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   # Cause the library to be output in the correct directory.
   add_custom_command(TARGET ${moduleName}_python
     POST_BUILD
-    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
+    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/_${PYLIB_SO_NAME}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Copying library files to python directory" )
 

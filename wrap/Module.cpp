@@ -486,7 +486,7 @@ void Module::python_code(const string& toolboxPath) const {
   // To avoid conflicts with libgtsam, we used the wrapperName
   // This is obviously not ideal, perhaps there is a better convention
   // NOTE: MUST have the lib
-  wrapperFile.oss << "BOOST_PYTHON_MODULE(lib" + wrapperName + ")\n";
+  wrapperFile.oss << "BOOST_PYTHON_MODULE(_lib" + wrapperName + ")\n";
   wrapperFile.oss << "{\n\n";
 
   // import_array();
