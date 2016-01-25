@@ -78,21 +78,19 @@ public:
 
   /** Correct an accelerometer measurement using this bias model, and optionally compute Jacobians */
   Vector3 correctAccelerometer(const Vector3& measurement,
-      boost::optional<Matrix&> H = boost::none) const {
-    if (H) {
-      H->resize(3, 6);
-      (*H) << -Matrix3::Identity(), Matrix3::Zero();
-    }
+                               OptionalJacobian<3, 6> H1 = boost::none,
+                               OptionalJacobian<3, 3> H2 = boost::none) const {
+    if (H1) (*H1) << -I_3x3, Z_3x3;
+    if (H2) (*H2) << I_3x3;
     return measurement - biasAcc_;
   }
 
   /** Correct a gyroscope measurement using this bias model, and optionally compute Jacobians */
   Vector3 correctGyroscope(const Vector3& measurement,
-      boost::optional<Matrix&> H = boost::none) const {
-    if (H) {
-      H->resize(3, 6);
-      (*H) << Matrix3::Zero(), -Matrix3::Identity();
-    }
+                           OptionalJacobian<3, 6> H1 = boost::none,
+                           OptionalJacobian<3, 3> H2 = boost::none) const {
+    if (H1) (*H1) << Z_3x3, -I_3x3;
+    if (H2) (*H2) << I_3x3;
     return measurement - biasGyro_;
   }
 
@@ -203,7 +201,6 @@ private:
   friend class boost::serialization::access;
   template<class ARCHIVE>
   void serialize(ARCHIVE & ar, const unsigned int /*version*/) {
-    ar & boost::serialization::make_nvp("imuBias::ConstantBias", *this);
     ar & BOOST_SERIALIZATION_NVP(biasAcc_);
     ar & BOOST_SERIALIZATION_NVP(biasGyro_);
   }
