@@ -145,5 +145,20 @@ void createNamespaceStructure(const std::vector<std::string>& namespaces,
 }
 
 /* ************************************************************************* */
+std::string python_overloadName(std::string className, std::string methodName, size_t index)
+{
+  std::stringstream ss; 
+  ss << className << "_" << methodName << "_overloads" << "_" << index;
+  return ss.str();
+}
 
+/* ************************************************************************* */
+std::string python_funcPointerName(std::string functionName, size_t index)
+{
+  std::stringstream ss; 
+  ss << functionName << "_" << index;
+  return ss.str();
+}
+
+/* ************************************************************************* */
 } // \namespace wrap

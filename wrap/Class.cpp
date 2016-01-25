@@ -637,30 +637,112 @@ void Class::python_wrapper(FileWriter& wrapperFile) const {
     m.python_wrapper(wrapperFile, name());
   BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values)
     m.python_wrapper(wrapperFile, name());
+  BOOST_FOREACH(const OperatorMethod& m, operator_methods | boost::adaptors::map_values)
+    m.python_wrapper(wrapperFile, name());
   wrapperFile.oss << ";\n\n";
 }
 
+void printSignatureGroupList(const MethodBase& mb)
+{
+
+  SignatureGroupList sigGroupList = mb.groupSignatureOverloads();
+
+  cout << "Common Sequences of " << mb.name() << endl;
+  BOOST_FOREACH(const SignatureGroup& sigGroup, sigGroupList){
+    cout << "  " << sigGroup.first << " with min: " << sigGroup.minArgs() << " max: " << sigGroup.maxArgs() << endl;
+  }
+
+}
+
 /* ************************************************************************* */
+// This method is a dispatcher to create the proper prototypes and macros for overloading.
+// Check the functions being called to feed wrapperFile.oss for examples of lines this in
+// the method will write in the generated file.
 void Class::python_memberFunctionOverloads(FileWriter& wrapperFile) const{
-  //BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
+  // wrapperFile.oss << "// " << this->name() << "\n";
   BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
     if(m.nrOverloads() > 1){
-      size_t min = m.argumentList(0).size();
-      size_t max = min;
-      // Find max num of arguments possible
-      for(size_t i=0; i < m.nrOverloads(); i++){
-        if(m.argumentList(i).size() > max)
-          max = m.argumentList(i).size();
+      SignatureGroupList sigGroupList = m.groupSignatureOverloads();
+      for(size_t i=0; i < sigGroupList.size(); i++){
+        if(sigGroupList[i].signatureList().size() > 1) {
+          wrapperFile.oss << python_memberFunctionOverloadMacro(m, sigGroupList[i], i);
+        }
+        wrapperFile.oss << python_memberFunctionPointer(m, sigGroupList[i].mainSignature(), i);
       }
+    }
+  }
+  BOOST_FOREACH(const StaticMethod& m, static_methods | boost::adaptors::map_values){
+    if(m.nrOverloads() > 1){
+      SignatureGroupList sigGroupList = m.groupSignatureOverloads();
+      for(size_t i=0; i < sigGroupList.size(); i++){
+        if(sigGroupList[i].signatureList().size() > 1) {
+          wrapperFile.oss << python_staticMemberFunctionOverloadMacro(m, sigGroupList[i], i);
+        }
+        wrapperFile.oss << python_staticMemberFunctionPointer(m, sigGroupList[i].mainSignature(), i);
+      }
+    }
+  }
+}
 
-      wrapperFile.oss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(";
-      // Example macro name: Point2_compose_overloads
-      wrapperFile.oss << name() << m.name() << "_overloads, " << name() << "::" << m.name();
-      wrapperFile.oss << ", " << min << ", " << max << ")\n";
+
+/* ************************************************************************* */
+std::string Class::python_memberFunctionOverloadMacro(const MethodBase& mb, const SignatureGroup& sigGroup, size_t i) const
+{
+  // Example: 
+  //    BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(Point2_f_overloads1, f, 1, 4)
+  std::stringstream ss;
+  ss << "BOOST_PYTHON_MEMBER_FUNCTION_OVERLOADS(" << python_overloadName(this->name(),mb.name(),i) << ", " << mb.name() << ", " << sigGroup.minArgs() << ", " << sigGroup.maxArgs() << ")\n";
+  return ss.str();
+}
+
+/* ************************************************************************* */
+std::string Class::python_staticMemberFunctionOverloadMacro(const StaticMethod& m, const SignatureGroup& sigGroup, size_t i) const
+{
+  // Example: 
+  //    BOOST_PYTHON_FUNCTION_OVERLOADS(Point2_f_overloads1, f, 1, 4)
+  std::stringstream ss;
+  ss << "BOOST_PYTHON_FUNCTION_OVERLOADS(" << python_overloadName(this->name(),m.name(),i) << ", " << m.name() << ", " << sigGroup.minArgs() << ", " << sigGroup.maxArgs() << ")\n";
+  return ss.str();
+}
+
+/* ************************************************************************* */
+std::string Class::python_memberFunctionPointer(const Method& m, const Signature& sig, size_t i) const
+{
+  // Example: 
+  //    bool    (X::*f1)(int, double, char)    = &X::f;
+  std::stringstream ss;
+  ss << sig.retValue.python_return_type() << " (" << this->name() << "::*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << (m.isConst()? " const" : "") << " = &" << this->name() << "::" << m.name() << ";\n";
+  return ss.str();  
+}
+
+/* ************************************************************************* */
+std::string Class::python_staticMemberFunctionPointer(const StaticMethod& m, const Signature& sig, size_t i) const
+{
+  // Example: 
+  //    bool    (*f1)(int, double, char)    = &X::f;
+  std::stringstream ss;
+  ss << sig.retValue.python_return_type() << " (*" << python_funcPointerName(m.name(), i) << ")" << sig.argList << " = &" << this->name() << "::" << m.name() << ";\n";
+  return ss.str();  
+}
+
+/* ************************************************************************* */
+void Class::erase_staticNonStaticOverloads()
+{
+  std::set<std::string> static_and_non_static;
+
+  BOOST_FOREACH(const StaticMethod& sm, static_methods | boost::adaptors::map_values){
+    BOOST_FOREACH(const Method& m, methods_ | boost::adaptors::map_values){
+      if(sm.name() == m.name()) {
+        cerr << "Warning: method " << this->name() << "::" << m.name() << " has both static and non-static overloads and cannot be wrapped!" << endl;
+        static_and_non_static.insert(m.name());
+        break;
+      }
     }
   }
 
-  wrapperFile.oss << "\n";
-}
-/* ************************************************************************* */
+  BOOST_FOREACH(const std::string& s, static_and_non_static) {
+    methods_.erase(s);
+    static_methods.erase(s);
+  }
 
+}

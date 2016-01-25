@@ -87,6 +87,14 @@ struct ArgumentList: public std::vector<Argument> {
 
   ArgumentList expandTemplate(const TemplateSubstitution& ts) const;
 
+  /**
+   * Check if this ArgumentList is a subsequence of other ArgumentList. 
+   *
+   * To be a subsequence, the other list should contain parameters of the same 
+   * _type_ in the same order of this list. 
+   */
+  bool isSubsequenceOf(const ArgumentList &other) const;
+
   // MATLAB code generation:
 
   /**

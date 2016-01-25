@@ -188,6 +188,10 @@ void Module::parseMarkup(const std::string& data) {
   expandedClasses = ExpandTypedefInstantiations(classes,
       templateInstantiationTypedefs);
 
+  // Post-process classes to remove static and non-static overloads
+  BOOST_FOREACH(Class& cls, expandedClasses)
+    cls.erase_staticNonStaticOverloads();
+
   // Dependency check list
   vector<string> validTypes = GenerateValidTypes(expandedClasses,
       forward_declarations);
@@ -349,7 +353,19 @@ vector<string> Module::GenerateValidTypes(const vector<Class>& classes, const ve
   validTypes.push_back("size_t"); 
   validTypes.push_back("double"); 
   validTypes.push_back("Vector"); 
+  // Accept also vectors with fixed size defined on base/Vector.h
+  for(int i = 1; i <= 10; i++)
+  {
+    std::stringstream ss; ss << "Vector" << i;
+    validTypes.push_back(ss.str()); 
+  }
   validTypes.push_back("Matrix"); 
+  // Accept also matrices with fixed size defined on base/Matrix.h
+  for(int i = 1; i <= 9; i++)
+  {
+    std::stringstream ss; ss << "Matrix" << i;
+    validTypes.push_back(ss.str()); 
+  }
   //Create a list of parsed classes for dependency checking 
   BOOST_FOREACH(const Class& cls, classes) { 
     validTypes.push_back(cls.qualifiedName("::")); 
@@ -460,16 +476,50 @@ void Module::python_code(const string& toolboxPath) const {
   wrapperFile.oss << "using namespace gtsam;\n\n";// add namespace to avoid appending gtsam::
 
   // MACROS TODO(Andrew): Move these into class specific functions
+  wrapperFile.oss << "// Prototypes used to perform overloading\n";
   BOOST_FOREACH(const Class& cls, expandedClasses){
     cls.python_memberFunctionOverloads(wrapperFile);
   }
+  wrapperFile.oss << "\n";
 
   // Name for the module must match the name of the compiled library
   // To avoid conflicts with libgtsam, we used the wrapperName
   // This is obviously not ideal, perhaps there is a better convention
   // NOTE: MUST have the lib
-  wrapperFile.oss << "BOOST_PYTHON_MODULE(lib" + wrapperName + ")\n";
-  wrapperFile.oss << "{\n";
+  wrapperFile.oss << "BOOST_PYTHON_MODULE(_lib" + wrapperName + ")\n";
+  wrapperFile.oss << "{\n\n";
+
+  // import_array();
+  // // NumpyEigenConverter<Eigen::Matrix< double, 1, 1 > >::register_converter();
+  // // NumpyEigenConverter<Eigen::Matrix< double, 2, 1 > >::register_converter();
+  // NumpyEigenConverter<Vector >::register_converter();
+  // NumpyEigenConverter<Vector >::register_converter();
+
+  // write register_converter lines for all Vector/Matrix types
+  // TODO: Look in the arguments and return values and register only matrix that are wrapped
+  // NOTE: Should call import_array before registering the converters for Eigen Matrices. See numpy_eigen/NumpyEigenConverter.hpp
+  wrapperFile.oss << "import_array();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector1>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector2>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector3>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector4>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector5>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector6>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector7>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector8>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector9>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Vector10>::register_converter();\n\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix>::register_converter();\n";
+  // Matrix1 == Vector1
+  wrapperFile.oss << "NumpyEigenConverter<Matrix2>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix3>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix4>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix5>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix6>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix7>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix8>::register_converter();\n";
+  wrapperFile.oss << "NumpyEigenConverter<Matrix9>::register_converter();\n\n";
 
   // write out classes
   BOOST_FOREACH(const Class& cls, expandedClasses)

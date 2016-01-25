@@ -10,11 +10,9 @@
  * -------------------------------------------------------------------------- */
 
 /**
- * @file StaticMethod.h
- * @brief describes and generates code for static methods
- * @author Frank Dellaert
- * @author Alex Cunningham
- * @author Richard Roberts
+ * @file OperatorMethod.h
+ * @brief describes and generates code for methods
+ * @author Ellon Paiva Mendes (LAAS-CNRS)
  **/
 
 #pragma once
@@ -23,26 +21,41 @@
 
 namespace wrap {
 
-/// StaticMethod class
-struct StaticMethod: public MethodBase {
+/// OperatorMethod class
+class OperatorMethod: public MethodBase {
+
+  bool is_const_;
+
+public:
 
   typedef const std::string& Str;
 
-  friend std::ostream& operator<<(std::ostream& os, const StaticMethod& m) {
+  virtual bool isStatic() const {
+    return false;
+  }
+
+  virtual bool isConst() const {
+    return is_const_;
+  }
+
+  friend std::ostream& operator<<(std::ostream& os, const OperatorMethod& m) {
     for (size_t i = 0; i < m.nrOverloads(); i++)
-      os << "static " << m.returnVals_[i] << " " << m.name_ << m.argLists_[i];
+      os << m.returnVals_[i] << " " << m.name_ << m.argLists_[i];
     return os;
   }
 
   // emit python wrapper
   void python_wrapper(FileWriter& wrapperFile, Str className) const;
 
-protected:
+private:
 
-  virtual void proxy_header(FileWriter& proxyFile) const;
+  // Emit method header
+  void proxy_header(FileWriter& proxyFile) const;
 
   virtual std::string wrapper_call(FileWriter& wrapperFile, Str cppClassName,
       Str matlabUniqueName, const ArgumentList& args) const;
+
+  std::string operatorSymbol() const;
 };
 
 } // \namespace wrap

@@ -21,22 +21,27 @@ namespace wrap {
 struct ReturnType: public Qualified {
 
   bool isPtr;
+  bool isRef;
+  bool isConst;
 
   friend struct ReturnValueGrammar;
 
   /// Makes a void type
   ReturnType() :
-      isPtr(false) {
+      isPtr(false), isRef(false), isConst(false) {
   }
 
   /// Constructor, no namespaces
-  ReturnType(const std::string& name, Category c = CLASS, bool ptr = false) :
-      Qualified(name, c), isPtr(ptr) {
+  ReturnType(const std::string& name, Category c = CLASS, 
+    bool ptr = false, bool ref = false, bool const_ = false) :
+      Qualified(name, c), isPtr(ptr), isRef(ref), isConst(const_) {
   }
 
   virtual void clear() {
     Qualified::clear();
     isPtr = false;
+    isRef = false;
+    isConst = false;
   }
 
   /// Check if this type is in a set of valid types
@@ -52,6 +57,8 @@ private:
   friend struct ReturnValue;
 
   std::string str(bool add_ptr) const;
+
+  std::string python_str() const;
 
   /// Example: out[1] = wrap_shared_ptr(pairResult.second,"Test", false);
   void wrap_result(const std::string& out, const std::string& result,
@@ -83,7 +90,7 @@ struct ReturnTypeGrammar: public classic::grammar<ReturnTypeGrammar> {
 
     definition(ReturnTypeGrammar const& self) {
       using namespace classic;
-      type_p = self.type_g >> !ch_p('*')[assign_a(self.result_.isPtr, T)];
+      type_p = !str_p("const")[assign_a(self.result_.isConst, T)] >> self.type_g >> !ch_p('*')[assign_a(self.result_.isPtr, T)] >> !ch_p('&')[assign_a(self.result_.isRef, T)];
     }
 
     classic::rule<ScannerT> const& start() const {

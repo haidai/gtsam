@@ -18,6 +18,15 @@ string ReturnType::str(bool add_ptr) const {
 }
 
 /* ************************************************************************* */
+string ReturnType::python_str() const {
+  string result = (isConst? "const " : "");
+  result += qualifiedName("::");
+  result += (isPtr? " *" : " ");
+  result += (isRef? "&" : "");
+  return result;
+}
+
+/* ************************************************************************* */
 void ReturnType::wrap_result(const string& out, const string& result,
     FileWriter& wrapperFile, const TypeAttributesTable& typeAttributes) const {
 

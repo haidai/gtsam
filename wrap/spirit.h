@@ -150,7 +150,9 @@ struct BasicRules {
     comments_p = comment_p("/*", "*/") | comment_p("//", eol_p);
 
     basisType_p = (str_p("string") | "bool" | "size_t" | "int" | "double"
-        | "char" | "unsigned char");
+        // | "char" | "unsigned char");
+            | "char" | "unsigned char" | "ostream");
+
 
     eigenType_p = (str_p("Vector") | "Matrix");
 

@@ -1,5 +1,4 @@
 #Setup cache options
-option(GTSAM_BUILD_PYTHON "Build Python wrapper statically (increases build time)" OFF)
 set(GTSAM_BUILD_PYTHON_FLAGS "" CACHE STRING "Extra flags for running Matlab PYTHON compilation")
 set(GTSAM_PYTHON_INSTALL_PATH "" CACHE PATH "Python toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/borg/python")
 if(NOT GTSAM_PYTHON_INSTALL_PATH)
@@ -34,9 +33,9 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   include_directories(${PYTHON_INCLUDE_DIRS})
 
   # Find NumpyEigen
-  find_package(numpy_eigen REQUIRED)
-  include_directories(${numpy_eigen_INCLUDE_DIR})
-
+  # find_package(numpy_eigen REQUIRED)
+  include_directories(${CMAKE_SOURCE_DIR}/gtsam/3rdparty/numpy_eigen/include/)
+  # include_directories(${numpy_eigen_INCLUDE_DIRS})
   if(GTSAM_USE_SYSTEM_EIGEN)
      find_package(Eigen3 REQUIRED)
   else()
@@ -89,7 +88,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 		WORKING_DIRECTORY ${generated_files_path}
 		VERBATIM
     )
-  
+
   set(gtsamLib gtsam)
   #TODO(Andrew): Reimplement below
 
@@ -150,7 +149,7 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
   # Cause the library to be output in the correct directory.
   add_custom_command(TARGET ${moduleName}_python
     POST_BUILD
-    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/${PYLIB_SO_NAME}
+    COMMAND cp -v ${PYLIB_OUTPUT_FILE} ${PYTHON_MODULE_DIRECTORY}/_${PYLIB_SO_NAME}
     WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
     COMMENT "Copying library files to python directory" )
 

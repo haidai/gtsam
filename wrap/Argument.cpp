@@ -205,3 +205,20 @@ void ArgumentList::proxy_check(FileWriter& proxyFile) const {
 
 /* ************************************************************************* */
 
+bool ArgumentList::isSubsequenceOf(const ArgumentList &other) const
+{
+  for(size_t i=0; i<this->size(); i++) {
+    // is not a subsequence if the other list is shorter than this one.
+    if(i >= other.size()) return false;
+
+    // is not a subsequence if the all attributes but the name of the arguments 
+    // in the same position are not equal
+    if( not ((*this)[i].type   == other[i].type) ||
+        (*this)[i].is_const != other[i].is_const ||
+        (*this)[i].is_ref   != other[i].is_ref   ||
+        (*this)[i].is_ptr   != other[i].is_ptr   )
+      return false;
+  }
+
+  return true;
+}

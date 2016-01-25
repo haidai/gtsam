@@ -61,6 +61,7 @@ protected:
 
   virtual std::string wrapper_call(FileWriter& wrapperFile, Str cppClassName,
       Str matlabUniqueName, const ArgumentList& args) const = 0;
+
 };
 
 } // \namespace wrap
