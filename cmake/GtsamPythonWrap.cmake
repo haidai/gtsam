@@ -11,8 +11,9 @@
 # interfaceHeader:  The relative path to the wrapper interface definition file.
 function(wrap_python interfaceHeader)
 
-	# Find path to interface header file
+	# Find path to interface header file. NOTE(frank): don't know why second line needed
 	get_filename_component(modulePath "${interfaceHeader}" PATH)
+	get_filename_component(absoluteInterfaceHeader "${interfaceHeader}" ABSOLUTE)
 	
 	# Devise module name from interface header file
 	get_filename_component(moduleName "${interfaceHeader}" NAME_WE)
@@ -24,16 +25,7 @@ function(wrap_python interfaceHeader)
 	# The product of wrapping is this file, which will be a dependency for a library
 	set(generated_cpp_file "${generated_files_path}/${moduleName}_python.cpp")
 	
-	get_filename_component(absoluteInterfaceHeader "${interfaceHeader}" ABSOLUTE)
-
 	# Set up generation of module source file
-	message(STATUS "PYTHON WRAP VARIABLES:")
-	message(${absoluteInterfaceHeader})
-	message(${generated_cpp_file})
-	message(${modulePath})
-	message(${moduleName})
-	message(${generated_files_path})
-
 	add_custom_command(
 		OUTPUT ${generated_cpp_file}
 		DEPENDS ${absoluteInterfaceHeader} wrap
