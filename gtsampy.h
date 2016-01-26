@@ -309,32 +309,32 @@ class Point2 {
   ostream operator<<(ostream& os, const Point2 &p);
 };
 
-// std::vector<gtsam::Point2>
-class Point2Vector
-{
-  // Constructors
-  Point2Vector();
-  Point2Vector(const gtsam::Point2Vector& v);
-
-  //Capacity
-  size_t size() const;
-  size_t max_size() const;
-  void resize(size_t sz);
-  size_t capacity() const;
-  bool empty() const;
-  void reserve(size_t n);
-
-  //Element access
-  gtsam::Point2 at(size_t n) const;
-  gtsam::Point2 front() const;
-  gtsam::Point2 back() const;
-
-  //Modifiers
-  void assign(size_t n, const gtsam::Point2& u);
-  void push_back(const gtsam::Point2& x);
-  void pop_back();
-};
-
+//// std::vector<gtsam::Point2>
+//class Point2Vector
+//{
+//  // Constructors
+//  Point2Vector();
+//  Point2Vector(const gtsam::Point2Vector& v);
+//
+//  //Capacity
+//  size_t size() const;
+//  size_t max_size() const;
+//  void resize(size_t sz);
+//  size_t capacity() const;
+//  bool empty() const;
+//  void reserve(size_t n);
+//
+//  //Element access
+//  gtsam::Point2 at(size_t n) const;
+//  gtsam::Point2 front() const;
+//  gtsam::Point2 back() const;
+//
+//  //Modifiers
+//  void assign(size_t n, const gtsam::Point2& u);
+//  void push_back(const gtsam::Point2& x);
+//  void pop_back();
+//};
+//
 //class StereoPoint2 {
 //  // Standard Constructors
 //  StereoPoint2();
@@ -426,17 +426,17 @@ class Rot2 {
 
   // Group
   static gtsam::Rot2 identity();
-  gtsam::Rot2 inverse();
-  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
-  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
+//  gtsam::Rot2 inverse();
+//  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
+//  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
 
   // Manifold
-  gtsam::Rot2 retract(Vector v) const;
-  Vector localCoordinates(const gtsam::Rot2& p) const;
+//  gtsam::Rot2 retract(Vector v) const;
+//  Vector localCoordinates(const gtsam::Rot2& p) const;
 
   // Lie Group
-  static gtsam::Rot2 Expmap(Vector v);
-  static Vector Logmap(const gtsam::Rot2& p);
+//  static gtsam::Rot2 Expmap(Vector v);
+//  static Vector Logmap(const gtsam::Rot2& p);
 
   // Group Action on Point2
   gtsam::Point2 rotate(const gtsam::Point2& point) const;
