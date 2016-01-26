@@ -23,6 +23,7 @@ else()
 	file(GLOB matlab_bin_directories "/usr/local/MATLAB/*/bin")
 	set(mex_program_name "mex")
 endif()
+
 # Run find_program explicitly putting $PATH after our predefined program
 # directories using 'ENV PATH' and 'NO_SYSTEM_ENVIRONMENT_PATH' - this prevents
 # finding the LaTeX mex program (totally unrelated to MATLAB Mex) when LaTeX is
@@ -32,6 +33,7 @@ find_program(MEX_COMMAND ${mex_program_name}
 	PATHS ${matlab_bin_directories} ENV PATH
 	NO_DEFAULT_PATH)
 mark_as_advanced(FORCE MEX_COMMAND)
+
 # Now that we have mex, trace back to find the Matlab installation root
 get_filename_component(MEX_COMMAND "${MEX_COMMAND}" REALPATH)
 get_filename_component(mex_path "${MEX_COMMAND}" PATH)

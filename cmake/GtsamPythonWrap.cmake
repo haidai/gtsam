@@ -1,17 +1,68 @@
 #Setup cache options
-set(GTSAM_BUILD_PYTHON_FLAGS "" CACHE STRING "Extra flags for running Matlab PYTHON compilation")
-set(GTSAM_PYTHON_INSTALL_PATH "" CACHE PATH "Python toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/borg/python")
-if(NOT GTSAM_PYTHON_INSTALL_PATH)
-  set(GTSAM_PYTHON_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/borg/python")
-endif()
+#set(GTSAM_BUILD_PYTHON_FLAGS "" CACHE STRING "Extra flags for running Matlab PYTHON compilation")
+#set(GTSAM_PYTHON_INSTALL_PATH "" CACHE PATH "Python toolbox destination, blank defaults to CMAKE_INSTALL_PREFIX/borg/python")
+#if(NOT GTSAM_PYTHON_INSTALL_PATH)
+#  set(GTSAM_PYTHON_INSTALL_PATH "${CMAKE_INSTALL_PREFIX}/borg/python")
+#endif()
 
 # Build python wrapper
 # Author: Andrew Melim and Frank Dellaert
 # Arguments:
-#
 # interfaceHeader:  The relative path to the wrapper interface definition file.
 function(wrap_python interfaceHeader)
 
+	# Find path to interface header file
+	get_filename_component(modulePath "${interfaceHeader}" PATH)
+	
+	# Devise module name from interface header file
+	get_filename_component(moduleName "${interfaceHeader}" NAME_WE)
+	
+	# Create directory for generated files
+	set(generated_files_path "${PROJECT_BINARY_DIR}/wrap/${moduleName}")
+	file(MAKE_DIRECTORY "${generated_files_path}")
+	
+	# The product of wrapping is this file, which will be a dependency for a library
+	set(generated_cpp_file "${generated_files_path}/${moduleName}_python.cpp")
+	
+	get_filename_component(absoluteInterfaceHeader "${interfaceHeader}" ABSOLUTE)
+
+	# Set up generation of module source file
+	message(STATUS "PYTHON WRAP VARIABLES:")
+	message(${absoluteInterfaceHeader})
+	message(${generated_cpp_file})
+	message(${modulePath})
+	message(${moduleName})
+	message(${generated_files_path})
+
+	add_custom_command(
+		OUTPUT ${generated_cpp_file}
+		DEPENDS ${absoluteInterfaceHeader} wrap
+		COMMAND wrap ${modulePath} ${moduleName} ${generated_files_path} python
+		WORKING_DIRECTORY ${generated_files_path}
+		VERBATIM
+	)
+
+	# Create the library
+	add_library(${moduleName} SHARED ${generated_cpp_file})
+	set_target_properties(${moduleName} PROPERTIES
+		OUTPUT_NAME         ${moduleName}
+		SKIP_BUILD_RPATH    TRUE   # TODO(frank): try without this !
+		CLEAN_DIRECT_OUTPUT 1
+	)
+
+	target_link_libraries(${moduleName}
+	                      ${Boost_PYTHON${BOOST_PYTHON_VERSION_SUFFIX_UPPERCASE}_LIBRARY}
+	                      ${PYTHON_LIBRARY} gtsam)
+
+	# Cause the library to be output in the correct directory.
+	# TODO: Change below to work on different systems (currently works only with Linux)
+	add_custom_command(
+		OUTPUT ${CMAKE_BINARY_DIR}/python/gtsam/_lib${moduleName}.so
+		DEPENDS ${moduleName}
+		COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:${moduleName}> ${CMAKE_BINARY_DIR}/python/gtsam/_lib${moduleName}.so
+		COMMENT "Copying extension module to python/gtsam/_lib${moduleName}.so"
+	)
+	add_custom_target(copy_python_module ALL DEPENDS ${CMAKE_BINARY_DIR}/python/gtsam/_lib${moduleName}.so)
 endfunction(wrap_python)
 
 #Author: Paul Furgale Modified by Andrew Melim
@@ -20,7 +71,6 @@ endfunction(wrap_python)
 # this will build the wrap module 'gtsam'.
 #
 # Arguments:
-#
 # interfaceHeader:  The relative path to the wrapper interface definition file.
 # linkLibraries:    Any *additional* libraries to link.  Your project library
 #                   (e.g. `lba`), libraries it depends on, and any necessary
@@ -57,29 +107,8 @@ function(wrap_and_install_python interfaceHeader linkLibraries extraIncludeDirs)
 #  #set(moduleName python)
 #
 #	# Paths for generated files
-#	set(compiled_mex_modules_root "${PROJECT_BINARY_DIR}/wrap/${moduleName}_mex")
 #	set(generated_files_path "${PROJECT_BINARY_DIR}/wrap/${moduleName}")
 #	set(generated_cpp_file "${generated_files_path}/${moduleName}_python.cpp")
-#
-# #TODO(Andrew): This is not necessary for python, but REQUIRED in wrap
-#  # Find matlab.h in GTSAM
-#	if("${PROJECT_NAME}" STREQUAL "GTSAM")
-#		set(matlab_h_path "${PROJECT_SOURCE_DIR}")
-#	else()
-#		if(NOT GTSAM_INCLUDE_DIR)
-#			message(FATAL_ERROR "You must call find_package(GTSAM) before using wrap")
-#		endif()
-#		list(GET GTSAM_INCLUDE_DIR 0 installed_includes_path)
-#		set(matlab_h_path "${installed_includes_path}/wrap")
-#	endif()
-#
-#
-#  # Set up generation of module source file
-#  message(${modulePath})
-#  message(${moduleName})
-#  message(${generated_files_path})
-#  message(${generated_cpp_file})
-#  message(${interfaceHeader})
 #
 #	message(STATUS "Building wrap module ${moduleName}")
 #

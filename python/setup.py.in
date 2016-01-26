@@ -1,6 +1,6 @@
 from distutils.core import setup
 
-setup(name='gtsam',
+setup(name='gtsampy',
       version='${GTSAM_VERSION_STRING}',
       description='GTSAM Python wrapper',
       license = "BSD",
@@ -9,7 +9,7 @@ setup(name='gtsam',
       maintainer_email='gtsam@lists.gatech.edu',
       url='https://collab.cc.gatech.edu/borg/gtsam',
       package_dir={ '': '${CMAKE_CURRENT_SOURCE_DIR}' },
-      packages=['gtsam', 'gtsam_utils', 'gtsam_examples', 'gtsam_tests'],
+      packages=['gtsampy', 'gtsam_utils', 'gtsam_examples', 'gtsam_tests'],
       package_data={'gtsam_tests' : ['README.md']},
-      data_files=[('${PY_INSTALL_FOLDER}/gtsam/', ['gtsam/_libgtsam_python.so'])],  # location of .so file relative to setup.py
+      data_files=[('${PY_INSTALL_FOLDER}/gtsampy/', ['gtsam/_libgtsampy.so'])],  # location of .so file relative to setup.py
      )

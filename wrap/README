@@ -1,16 +1,17 @@
 Frank Dellaert
-October 2011
+October 2011-January 2016
 
-The wrap library wraps the GTSAM library into a MATLAB toolbox. 
+The wrap executable wraps the GTSAM library as a foreigne langiage extension.
+As of now, MATLAB and python are supported. 
 
-It was designed to be more general than just wrapping GTSAM, but a small amount of 
+MATLAB notes:
+Wrap was designed to be more general than just wrapping GTSAM, but a small amount of 
 GTSAM specific code exists in matlab.h, the include file that is included by the
 mex files. The GTSAM-specific functionality consists primarily of handling of
-Eigen Matrix and Vector classes.  
+Eigen Matrix and Vector classes. For more details, please read comments in matlab.h
 
 For notes on creating a wrap interface, see gtsam.h for what features can be 
 wrapped into a toolbox, as well as the current state of the toolbox for gtsam.
-For more technical details on the interface, please read comments in matlab.h
 
 Some good things to know:
 

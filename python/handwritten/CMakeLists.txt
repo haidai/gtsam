@@ -27,6 +27,7 @@ set_target_properties(gtsam_python PROPERTIES
 	SKIP_BUILD_RPATH    TRUE
 	CLEAN_DIRECT_OUTPUT 1
 )
+
 target_link_libraries(gtsam_python
                       ${Boost_PYTHON${BOOST_PYTHON_VERSION_SUFFIX_UPPERCASE}_LIBRARY}
                       ${PYTHON_LIBRARY} gtsam)
