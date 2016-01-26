@@ -1,30 +1,20 @@
 #!/usr/bin/python
 import unittest
-from numpy.testing import *
-from gtsam import *
-import numpy_eigen as npe
-import numpy
+import gtsam
+import numpy as np
 
-#https://docs.python.org/2/library/unittest.html
+# https://docs.python.org/2/library/unittest.html
 class TestRot2(unittest.TestCase):
 
     def setUp(self):
-        self.rot = Rot2()
+        self.rot = gtsam.Rot2()
 
     def test_get_methods(self):
-        pass
+        self.assertEqual(0, self.rot.theta())
 
     def test_overloaded_constructor(self):
-        pass
-
-    def test_group_methods(self):
-        pass
-
-    def test_vector(self):
-        pass
-
-    def test_manifold(self):
-        pass
+        rot2 = gtsam.Rot2(2.0)
+        self.assertEqual(2.0, rot2.theta())
 
 if __name__ == '__main__':
     unittest.main()
