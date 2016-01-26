@@ -1,3 +1,5 @@
+include(GtsamPythonWrap)
+
 # Guard to avoid breaking this code in ccmake if by accident GTSAM_PYTHON_VERSION is set to an empty string 
 if(GTSAM_PYTHON_VERSION STREQUAL "")
 	set(GTSAM_PYTHON_VERSION "Default" CACHE STRING "Target python version for GTSAM python module. Use 'Default' to chose the default version" FORCE)
@@ -44,6 +46,9 @@ endif()
 find_package(Boost COMPONENTS python${BOOST_PYTHON_VERSION_SUFFIX})
 
 if(Boost_PYTHON${BOOST_PYTHON_VERSION_SUFFIX_UPPERCASE}_FOUND AND PYTHONLIBS_FOUND AND NUMPY_FOUND)
+	# create python wrappers
+	wrap_python(gtsampy.h)
+
 	# Build library
 	include_directories(${NUMPY_INCLUDE_DIRS})
 	include_directories(${PYTHON_INCLUDE_DIRS})
