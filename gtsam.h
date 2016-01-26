@@ -1,5 +1,4 @@
 /**
-
  * GTSAM Wrap Module Definition
  *
  * These are the current classes available through the matlab toolbox interface,
@@ -132,10 +131,7 @@ namespace std {
     template<T>
     class list
     {
-    
-    
     };
-
 }
 
 namespace gtsam {
@@ -254,6 +250,7 @@ class LieMatrix {
 // geometry
 //*************************************************************************
 
+#include <gtsam/geometry/Point2.h>
 class Point2 {
   // Standard Constructors
   Point2();
@@ -348,8 +345,9 @@ class StereoPoint2 {
   void serialize() const;
 };
 
+#include <gtsam/geometry/Point3.h>
 class Point3 {
-  // Standard Constructors
+  // Constructors
   Point3();
   Point3(double x, double y, double z);
   Point3(Vector v);
@@ -382,6 +380,7 @@ class Point3 {
   void serialize() const;
 };
 
+#include <gtsam/geometry/Rot2.h>
 class Rot2 {
   // Standard Constructors and Named Constructors
   Rot2();
@@ -425,6 +424,7 @@ class Rot2 {
   void serialize() const;
 };
 
+#include <gtsam/geometry/Rot3.h>
 class Rot3 {
   // Standard Constructors and Named Constructors
   Rot3();
@@ -447,7 +447,7 @@ class Rot3 {
 
   // Group
   static gtsam::Rot3 identity();
-    gtsam::Rot3 inverse() const;
+  gtsam::Rot3 inverse() const;
   gtsam::Rot3 compose(const gtsam::Rot3& p2) const;
   gtsam::Rot3 between(const gtsam::Rot3& p2) const;
 
@@ -455,14 +455,19 @@ class Rot3 {
   //gtsam::Rot3 retractCayley(Vector v) const; // FIXME, does not exist in both Matrix and Quaternion options
   gtsam::Rot3 retract(Vector v) const;
   Vector localCoordinates(const gtsam::Rot3& p) const;
+	
+  // Lie Group
+  Matrix AdjointMap() const;
+  static gtsam::Rot3 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Rot3& R);
+  static Matrix ExpmapDerivative(Vector x);
+  static Matrix LogmapDerivative(Vector x);
 
   // Group Action on Point3
   gtsam::Point3 rotate(const gtsam::Point3& p) const;
   gtsam::Point3 unrotate(const gtsam::Point3& p) const;
 
   // Standard Interface
-  static gtsam::Rot3 Expmap(Vector v);
-  static Vector Logmap(const gtsam::Rot3& p);
   Matrix matrix() const;
   Matrix transpose() const;
   gtsam::Point3 column(size_t index) const;

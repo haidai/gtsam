@@ -1,5 +1,5 @@
 /**
- * GTSAM Python Wrap Module Definition
+ * GTSAM Wrap Module Definition
  *
  * These are the current classes available through the matlab toolbox interface,
  * add more functions/classes as they are available.
@@ -113,478 +113,49 @@
  *  4) Add return policy when returning references or pointers. Also make wrapper accept 'const' and '&' in return type 
  */
 
+namespace std {
+    #include <vector>
+    template<T>
+    class vector
+    {
+        //Do we need these?
+        //Capacity
+        /*size_t size() const;
+        size_t max_size() const;
+        //void resize(size_t sz);
+        size_t capacity() const;
+        bool empty() const;
+        void reserve(size_t n);
+
+        //Element access
+        T* at(size_t n);
+        T* front();
+        T* back();
+
+        //Modifiers
+        void assign(size_t n, const T& u);
+        void push_back(const T& x);
+        void pop_back();*/
+    };
+    //typedef std::vector
+  
+    #include<list>
+    template<T>
+    class list
+    {
+    };
+}
+
+// Next two lines added for python, might break MATLAB
 class gtsam::Key;
 virtual class gtsam::NoiseModelFactor;
 
 namespace gtsam {
-
-//*************************************************************************
-// geometry
-//*************************************************************************
-
-#include <gtsam/geometry/Point2.h>
-class Point2 {
-  // Standard Constructors
-  Point2();
-  Point2(double x, double y);
-
-  // Advanced Constructor
-  Point2(Vector v);
-
-  // Testable
-  void print(string s) const;
-  bool equals(const gtsam::Point2& pose, double tol) const;
-
-  // Group
-  gtsam::Point2 operator-() const;
-  gtsam::Point2 operator+(const Point2 &p) const;
-  gtsam::Point2 operator-(const Point2 &p) const;
-  static gtsam::Point2 identity();
-
-  // Vector Space
-  gtsam::Point2 unit() const;
-  double norm() const;
-  double distance(const gtsam::Point2 &p) const;
-  double dist(const gtsam::Point2 &p) const;
-  gtsam::Point2 operator*(double s) const;
-  gtsam::Point2 operator*(double s, const gtsam::Point2 &p) const;
-  gtsam::Point2 operator/(double q) const;
-
-  // Standard Interface
-  bool operator==(const gtsam::Point2 &p) const;
-  double x() const;
-  double y() const;
-  Vector vector() const;
-
-  // enabling __str__ and __repr__
-  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
-  ostream operator<<(ostream& os, const Point2 &p);
-
-};
-
-#include <gtsam/geometry/Point3.h>
-class Point3 {
- // Standard Constructors
- Point3();
- Point3(double x, double y, double z);
-
- // Advanced Constructors
- Point3(Vector v);
-
- // Testable
- void print(string s) const;
- bool equals(const gtsam::Point3& p, double tol) const;
-
- // Group
- gtsam::Point3 operator-() const;
- gtsam::Point3 operator+(const Point3 &p) const;
- gtsam::Point3 operator-(const Point3 &p) const;
- static gtsam::Point3 identity();
-
- // Vector Space
- // gtsam::Point3 unit() const;
- double norm() const;
- double distance(const gtsam::Point3 &p) const;
- double dist(const gtsam::Point3 &p) const;
- gtsam::Point3 operator*(double s) const;
- gtsam::Point3 operator*(double s, const gtsam::Point3 &p) const;
- gtsam::Point3 operator/(double q) const;
- gtsam::Point3 normalize() const;
- gtsam::Point3 cross(const gtsam::Point3 &p) const;
- double dot(const gtsam::Point3 &p) const;
-
- // Standard Interface
- bool operator==(const gtsam::Point3 &p) const;
- double x() const;
- double y() const;
- double z() const;
- Vector vector() const;
- gtsam::Point3 add(const gtsam::Point3 &p) const;
- gtsam::Point3 sub(const gtsam::Point3 &p) const;
-  
- // enabling __str__ and __repr__
- // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
- ostream operator<<(ostream& os, const Point3 &p);
-
-};
-
-#include <gtsam/geometry/Rot2.h>
-class Rot2 {
-  // Standard Constructors and Named Constructors
-  Rot2();
-  Rot2(double theta);
-  static gtsam::Rot2 fromAngle(double theta);
-  static gtsam::Rot2 fromDegrees(double theta);
-  static gtsam::Rot2 fromCosSin(double c, double s);
-
-  // Testable
-  void print(string s) const;
-  bool equals(const gtsam::Rot2& rot, double tol) const;
-
-  // Group
-  static gtsam::Rot2 identity();
-
-  // Lie Group
-  static gtsam::Rot2 Expmap(Vector v);
-  static Vector Logmap(const gtsam::Rot2& p);
-
-  // Group Action on Point2
-  gtsam::Point2 rotate(const gtsam::Point2& point) const;
-  gtsam::Point2 unrotate(const gtsam::Point2& point) const;
-
-  // Standard Interface
-  static gtsam::Rot2 relativeBearing(const gtsam::Point2& d); // Ignoring derivative
-  static gtsam::Rot2 atan2(double y, double x);
-  double theta() const;
-  double degrees() const;
-  double c() const;
-  double s() const;
-  Matrix matrix() const;
-
-  // enabling serialization functionality
-  void serialize() const;
-
-};
-
-#include <gtsam/geometry/Rot3.h>
-class Rot3 {
- // Standard Constructors and Named Constructors
- Rot3();
- Rot3(const Point3 &col1, const Point3 &col2, const Point3 &col3);
- Rot3(double R11, double R12, double R13,
-      double R21, double R22, double R23,
-      double R31, double R32, double R33);
- Rot3(const Matrix3 &R);
- Rot3(const Matrix &R);
- // Rot3(const Quaternion &q);
- // static gtsam::Rot3 Random(double t);
- static gtsam::Rot3 Rx(double t);
- static gtsam::Rot3 Ry(double t);
- static gtsam::Rot3 Rz(double t);
- static gtsam::Rot3 RzRyRx(double x, double y, double z);
- static gtsam::Rot3 RzRyRx(const Vector& xyz);
- static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
- static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
- static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
- static gtsam::Rot3 ypr(double y, double p, double r);
- static gtsam::Rot3 AxisAngle(const Vector3& axis, double angle);
- static gtsam::Rot3 AxisAngle(const gtsam::Point3& axis, double angle);
- // static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
- static gtsam::Rot3 quaternion(double w, double x, double y, double z);
- static gtsam::Rot3 Rodrigues(const Vector3& vls);
- static gtsam::Rot3 Rodrigues(double wx, double wy, double wz);
-
- // Group
- gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;
- // TODO(Ellon): Handle inheritance overload to allow calling inverse
- // gtsam::Rot3 inverse() const; 
- gtsam::Rot3 conjugate(const gtsam::Rot3& cRb) const;
- static gtsam::Rot3 identity();
-
- // Manifold
- // enum   CoordinatesMode { EXPMAP, CAYLEY }
- gtsam::Rot3 retractCayley(Vector v) const;
- Vector localCayley(const gtsam::Rot3& p) const;
-
- // Lie Group
- Matrix AdjointMap() const;
- static gtsam::Rot3 Expmap(const Vector& v);
- static Vector Logmap(const gtsam::Rot3& R);
- static Matrix ExpmapDerivative(const Vector& x);
- static Matrix LogmapDerivative(const Vector& x);
-
- // Advanced Interface
- // enabling __str__ and __repr__
- // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
- ostream operator<<(ostream& os, const Rot3 &r);
- // Quaternion toQuaternion() const;
- Vector quaternion() const;
- gtsam::Rot3 slerp(double t, const gtsam::Rot3& other) const;
-
- // Testable
- void print(string s) const;
- bool equals(const gtsam::Rot3& rot, double tol) const;
-
- // Group Action on Point3
- // TODO(Ellon): Should add support to OptionalJacobian to first to allow the correct function pointer to be defined and then allow the overloading of rotate(Point3) with rotate(Unit3)
- // gtsam::Point3 rotate(const gtsam::Point3& p, gtsam::OptionalJacobian H1) const;
- gtsam::Point3 operator*(const gtsam::Point3& p) const;
- // gtsam::Point3 unrotate(const gtsam::Point3& p) const;
-
- // Group Action on Unit3
- // gtsam::Unit3 rotate(const gtsam::Unit3& p) const;
- gtsam::Unit3 operator*(const gtsam::Unit3& p) const;
- // gtsam::Unit3 unrotate(const gtsam::Unit3& p) const;
- 
- // Standard Interface
- Matrix matrix() const;
- Matrix transpose() const;
- gtsam::Point3 column(size_t index) const;
- gtsam::Point3 r1() const;
- gtsam::Point3 r2() const;
- gtsam::Point3 r3() const;
- Vector xyz() const;
- Vector3 ypr() const;
- Vector rpy() const;
- double roll() const;
- double pitch() const;
- double yaw() const;
-
-};
-
-#include <gtsam/geometry/Pose3.h>
-class Pose3 {
-  // Group
-  // TODO(Ellon): Handle inheritance overload to allow calling inverse
-  // gtsam::Pose3 inverse() const;
-  gtsam::Pose3 operator*(const Pose3& T) const;
-  static gtsam::Pose3 identity();
-
- //  //Lie Group
- //  // TODO
-
-  // Advanced Interface
-  ostream operator<<(ostream& os, const gtsam::Point3 &p);
-  // static std::pair< size_t, size_t >  translationInterval();
-  // static std::pair< size_t, size_t >  rotationInterval();
-
- // // Standard Constructors
- Pose3();
- Pose3(const gtsam::Pose3& pose);
- Pose3(const gtsam::Rot3& r, const gtsam::Point3& t);
- // TODO(Ellon): Add support for Pose2 first
- // Pose3(const gtsam::Pose2& pose2); // FIXME: shadows Pose3(Pose3 pose)
- Pose3(const Matrix& t);
-
- // // Testable
- void print(string s) const;
- bool equals(const gtsam::Pose3& pose) const;
- bool equals(const gtsam::Pose3& pose, double tol) const;
-
- // // Group Action on Point3
- gtsam::Point3 transform_from(const gtsam::Point3 &p) const;
- gtsam::Point3 operator*(const gtsam::Point3 &p) const;
- // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
- // gtsam::Point3 transform_to(const gtsam::Point3 &p) const;
-
- // Standard Interface
- // TODO(Ellon): The return value here is in fact 'const gtsam::Rot3&', and boost python doesn't now how to handle this return value.
- //              Thus we need to define a return value policy to wrap functions returning 'const gtsam::Rot3&'. Also, the wrapper grammar 
- //              does not accept 'const' and '&' in the return values.
- // gtsam::Rot3 rotation() const;
- // gtsam::Point3 translation() const;
- double x() const;
- double y() const;
- double z() const;
- Matrix4 matrix() const;
- // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
- // gtsam::Pose3 transform_to(const gtsam::Pose3& pose) const; // FIXME: shadows other transform_to()
- // TODO(Ellon): Add support for OptionalJacobian to wrap range methods
- // double range(const gtsam::Point3& point) const;
- // double range(const gtsam::Pose3& pose) const;
- gtsam::Unit3 bearing(const gtsam::Point3& point) const;
-
-};
-
-#include <gtsam/geometry/Unit3.h>
-class Unit3 {
- // Standard Constructors
- Unit3();
- Unit3(const gtsam::Point3& pose);
- Unit3(const Vector3& pose);
- Unit3(double x, double y, double z);
- static gtsam::Unit3 FromPoint3(const gtsam::Point3& point);
- // static gtsam::Unit3 Random(boost::mt19937 &rng);
-
- // Other functionality
- gtsam::Point3 operator*(double s, const gtsam::Unit3& d);
- // const Matrix32 & basis() const;
- Matrix3 skew() const;
- gtsam::Point3 point3() const;
- // const Vector3 & unitVector() const;
- Vector2 error(const gtsam::Unit3 &q) const;
- double distance(const gtsam::Unit3 &q) const;
-
- // Manifold
- // enum   CoordinatesMode { EXPMAP, RENORM }
- size_t dim() const;
- gtsam::Unit3 retract(const Vector2& v) const;
- Vector2 localCoordinates(const gtsam::Unit3& s) const;
- static size_t Dim();
- 
- // Testable
- void print(string s) const;
- bool equals(const gtsam::Unit3& pose, double tol) const;
-
- // Public Types
- // enum    { dimension = 2 }
-
-};
-
-//*************************************************************************
-// nonlinear
-//*************************************************************************
-// class gtsam::Key;
-#include <gtsam/nonlinear/Values.h>
-class Values {
- Values();
- Values(const gtsam::Values& other);
-
- size_t size() const;
- bool empty() const;
- void clear();
- size_t dim() const;
-
- void print(string s) const;
- bool equals(const gtsam::Values& other, double tol) const;
-
- void insert(const gtsam::Values& values);
- void update(const gtsam::Values& values);
- void erase(size_t j);
- void swap(gtsam::Values& values);
-
- // bool exists(size_t j) const;
- // gtsam::KeyList keys() const;
-
- // gtsam::VectorValues zeroVectors() const;
-
- // gtsam::Values retract(const gtsam::VectorValues& delta) const;
- // gtsam::VectorValues localCoordinates(const gtsam::Values& cp) const;
-
- // enabling serialization functionality
- void serialize() const;
-
- // New in 4.0, we have to specialize every insert/update/at to generate wrappers
- // Instead of the old:
- // void insert(size_t j, const gtsam::Value& value);
- // void update(size_t j, const gtsam::Value& val);
- // gtsam::Value at(size_t j) const;
-
- void insert(size_t j, const gtsam::Point2& t);
- void insert(size_t j, const gtsam::Point3& t);
- void insert(size_t j, const gtsam::Rot2& t);
- // void insert(size_t j, const gtsam::Pose2& t);
- void insert(size_t j, const gtsam::Rot3& t);
- void insert(size_t j, const gtsam::Pose3& t);
- // void insert(size_t j, const gtsam::Cal3_S2& t);
- // void insert(size_t j, const gtsam::Cal3DS2& t);
- // void insert(size_t j, const gtsam::Cal3Bundler& t);
- // void insert(size_t j, const gtsam::EssentialMatrix& t);
- // void insert(size_t j, const gtsam::imuBias::ConstantBias& t);
- void insert(size_t j, const Vector& t);
- void insert(size_t j, const Matrix& t);
-
- // Fixed size version
- void insertFixed(size_t j, Vector t, size_t n);
-
- void update(size_t j, const gtsam::Point2& t);
- void update(size_t j, const gtsam::Point3& t);
- void update(size_t j, const gtsam::Rot2& t);
- // void update(size_t j, const gtsam::Pose2& t);
- void update(size_t j, const gtsam::Rot3& t);
- void update(size_t j, const gtsam::Pose3& t);
- // void update(size_t j, const gtsam::Cal3_S2& t);
- // void update(size_t j, const gtsam::Cal3DS2& t);
- // void update(size_t j, const gtsam::Cal3Bundler& t);
- // void update(size_t j, const gtsam::EssentialMatrix& t);
- // void update(size_t j, const gtsam::imuBias::ConstantBias& t);
- void update(size_t j, const Vector& t);
- void update(size_t j, const Matrix& t);
-
- // See Python TODO 2) 
- // template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Pose2, gtsam::Rot3, gtsam::Pose3, gtsam::Cal3_S2, gtsam::Cal3DS2, gtsam::Cal3Bundler, gtsam::EssentialMatrix, gtsam::imuBias::ConstantBias, Vector, Matrix}>
- // T at(gtsam::Key j);
- // const gtsam::Point2 & at(gtsam::Key j);
- // const gtsam::Point3 & at(gtsam::Key j);
- // gtsam::Rot2 at(gtsam::Key j);
- // gtsam::Rot3 at(gtsam::Key j);
- // gtsam::Pose3 at(gtsam::Key j);
-
-};
-
-#include <gtsam/inference/Symbol.h>
-//TODO(Ellon): Improve wrapping of Symbol. Like it is it cannot be constructed from char,
-//             nor used as index for values.
-class Symbol {
-  Symbol(const Symbol &key);
-  Symbol(unsigned char c, size_t j);
-  Symbol(gtsam::Key key);
-  gtsam::Key key() const;
-  unsigned char chr();
-  size_t index() const;
-};
-
-#include <gtsam/slam/BetweenFactor.h>
-// template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose2, gtsam::Pose3, gtsam::imuBias::ConstantBias}>
-// template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose3}>
-// virtual class BetweenFactor : gtsam::NoiseModelFactor {
-//  BetweenFactor(size_t key1, size_t key2, const T& relativePose, const gtsam::noiseModel::Base* noiseModel);
-//  T measured() const;
-
-//  // enabling serialization functionality
-//  void serialize() const;
-// };
-
-// virtual class NoiseModelFactor: gtsam::NonlinearFactor {
-//  void equals(const gtsam::NoiseModelFactor& other, double tol) const;
-//  gtsam::noiseModel::Base* get_noiseModel() const;
-//  Vector unwhitenedError(const gtsam::Values& x) const;
-//  Vector whitenedError(const gtsam::Values& x) const;
-// };
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //
 ////*************************************************************************
 //// base
 ////*************************************************************************
 //
-// #include <gtsam/base/OptionalJacobian.h>
-// Pre-def OptionalJacobian to avoid dependency error
-// class gtsam::OptionalJacobian;
-// template<Rows,Cols>
-// class OptionalJacobian {
-//   OptionalJacobian();
-//   // OptionalJacobian(Jacobian& fixed);
-//   // OptionalJacobian(Jacobian* fixedPtr);
-//   // OptionalJacobian(Eigen::MatrixXd& dynamic);
-//   // OptionalJacobian(boost::none_t);
-//   // OptionalJacobian(const boost::optional<Eigen::MatrixXd & > optional);
-//   // operator bool() const;
-//   // Eigen::Map<Jacobian>& operator*();
-//   // Eigen::Map<Jacobian>* operator->();
-
-//   // template<N>
-//   // OptionalJacobian<Rows, N> cols(int startCol);
-
-// };
-
-// // TODO(Ellon): Add support to numbers as template parameters in the wrapper grammar to allow the typedef below.
-// //              Check TypeGrammar and TypeListGrammar in wrap/Qualified.h
-// typedef gtsam::OptionalJacobian<2, 3> OptionalJacobian23;
-// typedef gtsam::OptionalJacobian<3, 3> OptionalJacobian33;
-// 
-// 
 ///** gtsam namespace functions */
 //bool linear_independent(Matrix A, Matrix B, double tol);
 //
@@ -598,7 +169,7 @@ class Symbol {
 //  size_t dim() const;
 //};
 //
-//#include <gtsam/base/LieScalar.h>
+//#include <gtsam/base/deprecated/LieScalar.h>
 //class LieScalar {
 //  // Standard constructors
 //  LieScalar();
@@ -627,7 +198,7 @@ class Symbol {
 //  static Vector Logmap(const gtsam::LieScalar& p);
 //};
 //
-//#include <gtsam/base/LieVector.h>
+//#include <gtsam/base/deprecated/LieVector.h>
 //class LieVector {
 //  // Standard constructors
 //  LieVector();
@@ -659,7 +230,7 @@ class Symbol {
 //  void serialize() const;
 //};
 //
-//#include <gtsam/base/LieMatrix.h>
+//#include <gtsam/base/deprecated/LieMatrix.h>
 //class LieMatrix {
 //  // Standard constructors
 //  LieMatrix();
@@ -690,12 +261,80 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-
+//
 //*************************************************************************
 // geometry
 //*************************************************************************
 
+#include <gtsam/geometry/Point2.h>
+class Point2 {
+  // Standard Constructors
+  Point2();
+  Point2(double x, double y);
+  Point2(Vector v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Point2& pose, double tol) const;
+
+  // Group
+  static gtsam::Point2 identity();
+  gtsam::Point2 operator-() const;
+  gtsam::Point2 operator+(const Point2 &p) const;
+  gtsam::Point2 operator-(const Point2 &p) const;
+
+  // Vector Space
+  gtsam::Point2 unit() const;
+  double norm() const;
+  double distance(const gtsam::Point2 &p) const;
+  double dist(const gtsam::Point2 &p) const;
+  gtsam::Point2 operator*(double s) const;
+  gtsam::Point2 operator*(double s, const gtsam::Point2 &p) const;
+  gtsam::Point2 operator/(double q) const;
+
+  // Standard Interface
+  bool operator==(const gtsam::Point2 &p) const;
+  double x() const;
+  double y() const;
+  Vector vector() const;
+
+//  double dist(const gtsam::Point2& p2) const;
+//  double norm() const;
 //
+//  // enabling serialization functionality
+//  void serialize() const;
+
+  // enabling __str__ and __repr__
+  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+  ostream operator<<(ostream& os, const Point2 &p);
+};
+
+// std::vector<gtsam::Point2>
+class Point2Vector
+{
+  // Constructors
+  Point2Vector();
+  Point2Vector(const gtsam::Point2Vector& v);
+
+  //Capacity
+  size_t size() const;
+  size_t max_size() const;
+  void resize(size_t sz);
+  size_t capacity() const;
+  bool empty() const;
+  void reserve(size_t n);
+
+  //Element access
+  gtsam::Point2 at(size_t n) const;
+  gtsam::Point2 front() const;
+  gtsam::Point2 back() const;
+
+  //Modifiers
+  void assign(size_t n, const gtsam::Point2& u);
+  void push_back(const gtsam::Point2& x);
+  void pop_back();
+};
+
 //class StereoPoint2 {
 //  // Standard Constructors
 //  StereoPoint2();
@@ -712,8 +351,6 @@ class Symbol {
 //  gtsam::StereoPoint2 between(const gtsam::StereoPoint2& p2) const;
 //
 //  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
 //  gtsam::StereoPoint2 retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::StereoPoint2& p) const;
 //
@@ -730,7 +367,179 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-//
+
+#include <gtsam/geometry/Point3.h>
+class Point3 {
+  // Constructors
+  Point3();
+  Point3(double x, double y, double z);
+  Point3(Vector v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Point3& p, double tol) const;
+
+  // Group
+  static gtsam::Point3 identity();
+  gtsam::Point3 operator-() const;
+  gtsam::Point3 operator+(const Point3 &p) const;
+  gtsam::Point3 operator-(const Point3 &p) const;
+
+  // Vector Space
+  // gtsam::Point3 unit() const;
+  double norm() const;
+  double distance(const gtsam::Point3 &p) const;
+  double dist(const gtsam::Point3 &p) const;
+  gtsam::Point3 operator*(double s) const;
+  gtsam::Point3 operator*(double s, const gtsam::Point3 &p) const;
+  gtsam::Point3 operator/(double q) const;
+  gtsam::Point3 normalize() const;
+  gtsam::Point3 cross(const gtsam::Point3 &p) const;
+  double dot(const gtsam::Point3 &p) const;
+
+  // Standard Interface
+  bool operator==(const gtsam::Point3 &p) const;
+  double x() const;
+  double y() const;
+  double z() const;
+  Vector vector() const;
+  gtsam::Point3 add(const gtsam::Point3 &p) const;
+  gtsam::Point3 sub(const gtsam::Point3 &p) const;
+  
+  // enabling __str__ and __repr__
+  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+  ostream operator<<(ostream& os, const Point3 &p);
+};
+
+#include <gtsam/geometry/Rot2.h>
+class Rot2 {
+  // Standard Constructors and Named Constructors
+  Rot2();
+  Rot2(double theta);
+  static gtsam::Rot2 fromAngle(double theta);
+  static gtsam::Rot2 fromDegrees(double theta);
+  static gtsam::Rot2 fromCosSin(double c, double s);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Rot2& rot, double tol) const;
+
+  // Group
+  static gtsam::Rot2 identity();
+  gtsam::Rot2 inverse();
+  gtsam::Rot2 compose(const gtsam::Rot2& p2) const;
+  gtsam::Rot2 between(const gtsam::Rot2& p2) const;
+
+  // Manifold
+  gtsam::Rot2 retract(Vector v) const;
+  Vector localCoordinates(const gtsam::Rot2& p) const;
+
+  // Lie Group
+  static gtsam::Rot2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Rot2& p);
+
+  // Group Action on Point2
+  gtsam::Point2 rotate(const gtsam::Point2& point) const;
+  gtsam::Point2 unrotate(const gtsam::Point2& point) const;
+
+  // Standard Interface
+  static gtsam::Rot2 relativeBearing(const gtsam::Point2& d); // Ignoring derivative
+  static gtsam::Rot2 atan2(double y, double x);
+  double theta() const;
+  double degrees() const;
+  double c() const;
+  double s() const;
+  Matrix matrix() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
+#include <gtsam/geometry/Rot3.h>
+class Rot3 {
+  // Standard Constructors and Named Constructors
+  Rot3();
+  Rot3(const Matrix3 &R);
+  Rot3(const Matrix &R);
+  Rot3(const Point3 &col1, const Point3 &col2, const Point3 &col3);
+  Rot3(double R11, double R12, double R13,
+       double R21, double R22, double R23,
+       double R31, double R32, double R33);
+  // Rot3(const Quaternion &q);
+  // static gtsam::Rot3 Random(double t);
+  static gtsam::Rot3 Rx(double t);
+  static gtsam::Rot3 Ry(double t);
+  static gtsam::Rot3 Rz(double t);
+  static gtsam::Rot3 RzRyRx(double x, double y, double z);
+  static gtsam::Rot3 RzRyRx(const Vector& xyz);
+  static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
+  static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
+  static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
+  static gtsam::Rot3 ypr(double y, double p, double r);
+  static gtsam::Rot3 AxisAngle(const Vector3& axis, double angle);
+  static gtsam::Rot3 AxisAngle(const gtsam::Point3& axis, double angle);
+  // static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
+  static gtsam::Rot3 quaternion(double w, double x, double y, double z);
+  static gtsam::Rot3 Rodrigues(const Vector3& vls);
+  static gtsam::Rot3 Rodrigues(double wx, double wy, double wz);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Rot3& rot, double tol) const;
+
+  // Group
+  static gtsam::Rot3 identity();
+  gtsam::Rot3 operator*(const gtsam::Rot3& R3) const;
+  // TODO(Ellon): Handle inheritance overload to allow calling inverse
+  // gtsam::Rot3 inverse() const; 
+  gtsam::Rot3 conjugate(const gtsam::Rot3& cRb) const;
+
+  // Manifold
+  // enum   CoordinatesMode { EXPMAP, CAYLEY }
+  gtsam::Rot3 retractCayley(Vector v) const;
+  Vector localCayley(const gtsam::Rot3& p) const;
+
+  // Lie Group
+  Matrix AdjointMap() const;
+  static gtsam::Rot3 Expmap(const Vector& v);
+  static Vector Logmap(const gtsam::Rot3& R);
+  static Matrix ExpmapDerivative(Vector x);
+  static Matrix LogmapDerivative(Vector x);
+
+  // Group Action on Point3
+  // TODO(Ellon): Should add support to OptionalJacobian to first to allow the correct function pointer to be defined and then allow the overloading of rotate(Point3) with rotate(Unit3)
+  // gtsam::Point3 rotate(const gtsam::Point3& p, gtsam::OptionalJacobian H1) const;
+  gtsam::Point3 operator*(const gtsam::Point3& p) const;
+  // gtsam::Point3 unrotate(const gtsam::Point3& p) const;
+
+  // Group Action on Unit3
+  // gtsam::Unit3 rotate(const gtsam::Unit3& p) const;
+  gtsam::Unit3 operator*(const gtsam::Unit3& p) const;
+  // gtsam::Unit3 unrotate(const gtsam::Unit3& p) const;
+ 
+  // Standard Interface
+  Matrix matrix() const;
+  Matrix transpose() const;
+  gtsam::Point3 column(size_t index) const;
+  gtsam::Point3 r1() const;
+  gtsam::Point3 r2() const;
+  gtsam::Point3 r3() const;
+  Vector xyz() const;
+  Vector3 ypr() const;
+  Vector rpy() const;
+  double roll() const;
+  double pitch() const;
+  double yaw() const;
+  // Quaternion toQuaternion() const;
+  Vector quaternion() const;
+  
+  // enabling __str__ and __repr__
+  // NOTE: the declaration is missing "friend" and "&" in the return value, and "std" in the parameters
+  ostream operator<<(ostream& os, const Rot3 &r);
+
+  gtsam::Rot3 slerp(double t, const gtsam::Rot3& other) const;
+};
+
 //class Pose2 {
 //  // Standard Constructor
 //  Pose2();
@@ -751,8 +560,6 @@ class Symbol {
 //  gtsam::Pose2 between(const gtsam::Pose2& p2) const;
 //
 //  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
 //  gtsam::Pose2 retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::Pose2& p) const;
 //
@@ -780,7 +587,108 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
+#include <gtsam/geometry/Pose3.h>
+class Pose3 {
+  // Standard Constructors
+  Pose3();
+  Pose3(const gtsam::Pose3& pose);
+  Pose3(const gtsam::Rot3& r, const gtsam::Point3& t);
+  // TODO(Ellon): Add support for Pose2 first
+  // Pose3(const gtsam::Pose2& pose2); // FIXME: shadows Pose3(Pose3 pose)
+  Pose3(const Matrix& t);
 
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Pose3& pose, double tol) const;
+  bool equals(const gtsam::Pose3& pose) const;
+
+  // Group
+  // TODO(Ellon): Handle inheritance overload to allow calling inverse
+  // gtsam::Pose3 inverse() const;
+  gtsam::Pose3 operator*(const Pose3& T) const;
+  static gtsam::Pose3 identity();
+
+//  // Manifold
+//  gtsam::Pose3 retract(Vector v) const;
+//  Vector localCoordinates(const gtsam::Pose3& T2) const;
+//
+//  // Lie Group
+//  static gtsam::Pose3 Expmap(Vector v);
+//  static Vector Logmap(const gtsam::Pose3& p);
+//  Matrix AdjointMap() const;
+//  Vector Adjoint(Vector xi) const;
+//  static Matrix wedge(double wx, double wy, double wz, double vx, double vy, double vz);
+
+ // // Group Action on Point3
+ gtsam::Point3 transform_from(const gtsam::Point3 &p) const;
+ gtsam::Point3 operator*(const gtsam::Point3 &p) const;
+ // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
+ // gtsam::Point3 transform_to(const gtsam::Point3 &p) const;
+
+ // Standard Interface
+ // TODO(Ellon): The return value here is in fact 'const gtsam::Rot3&', and boost python doesn't now how to handle this return value.
+ //              Thus we need to define a return value policy to wrap functions returning 'const gtsam::Rot3&'. Also, the wrapper grammar 
+ //              does not accept 'const' and '&' in the return values.
+ // gtsam::Rot3 rotation() const;
+ // gtsam::Point3 translation() const;
+ double x() const;
+ double y() const;
+ double z() const;
+ Matrix4 matrix() const;
+ // TODO(Ellon): Add support for OptionalJacobian and proper overload the method 'transform_to'
+ // gtsam::Pose3 transform_to(const gtsam::Pose3& pose) const; // FIXME: shadows other transform_to()
+ // TODO(Ellon): Add support for OptionalJacobian to wrap range methods
+ // double range(const gtsam::Point3& point) const;
+ // double range(const gtsam::Pose3& pose) const;
+ gtsam::Unit3 bearing(const gtsam::Point3& point) const;
+
+  // Advanced Interface
+  ostream operator<<(ostream& os, const gtsam::Point3 &p);
+};
+
+//// std::vector<gtsam::Pose3>
+//class Pose3Vector
+//{
+//  Pose3Vector();
+//  size_t size() const;
+//  bool empty() const;
+//  gtsam::Pose3 at(size_t n) const;
+//  void push_back(const gtsam::Pose3& x);
+//};
+
+#include <gtsam/geometry/Unit3.h>
+class Unit3 {
+  // Standard Constructors
+  Unit3();
+  Unit3(const gtsam::Point3& pose);
+  Unit3(const Vector3& pose);
+  Unit3(double x, double y, double z);
+  static gtsam::Unit3 FromPoint3(const gtsam::Point3& point);
+  // static gtsam::Unit3 Random(boost::mt19937 &rng);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Unit3& pose, double tol) const;
+
+  // Other functionality
+  gtsam::Point3 operator*(double s, const gtsam::Unit3& d);
+  // const Matrix32 & basis() const;
+  Matrix3 skew() const;
+  gtsam::Point3 point3() const;
+  // const Vector3 & unitVector() const;
+  Vector2 error(const gtsam::Unit3 &q) const;
+  double distance(const gtsam::Unit3 &q) const;
+
+  // Manifold
+  // enum   CoordinatesMode { EXPMAP, RENORM }
+  size_t dim() const;
+  gtsam::Unit3 retract(const Vector2& v) const;
+  Vector2 localCoordinates(const gtsam::Unit3& s) const;
+  static size_t Dim();
+
+ // Public Types
+ // enum    { dimension = 2 }
+};
 
 //#include <gtsam/geometry/EssentialMatrix.h>
 //class EssentialMatrix {
@@ -840,28 +748,13 @@ class Symbol {
 //  void serialize() const;
 //};
 //
-//#include <gtsam/geometry/Cal3DS2.h>
-//class Cal3DS2 {
+//#include <gtsam/geometry/Cal3DS2_Base.h>
+//virtual class Cal3DS2_Base {
 //  // Standard Constructors
-//  Cal3DS2();
-//  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2, double k3, double k4);
-//  Cal3DS2(Vector v);
+//  Cal3DS2_Base();
 //
 //  // Testable
 //  void print(string s) const;
-//  bool equals(const gtsam::Cal3DS2& rhs, double tol) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Cal3DS2 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Cal3DS2& c) const;
-//
-//  // Action on Point2
-//  gtsam::Point2 calibrate(const gtsam::Point2& p, double tol) const;
-//  gtsam::Point2 calibrate(const gtsam::Point2& p) const;
-//  gtsam::Point2 uncalibrate(const gtsam::Point2& p) const;
-//  // TODO: D2d functions that start with an uppercase letter
 //
 //  // Standard Interface
 //  double fx() const;
@@ -869,14 +762,66 @@ class Symbol {
 //  double skew() const;
 //  double px() const;
 //  double py() const;
-//  Vector vector() const;
-//  Vector k() const;
-//  //Matrix K() const; //FIXME: Uppercase
+//  double k1() const;
+//  double k2() const;
+//
+//  // Action on Point2
+//  gtsam::Point2 uncalibrate(const gtsam::Point2& p) const;
+//  gtsam::Point2 calibrate(const gtsam::Point2& p, double tol) const;
+//  gtsam::Point2 calibrate(const gtsam::Point2& p) const;
 //
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
 //
+//#include <gtsam/geometry/Cal3DS2.h>
+//virtual class Cal3DS2 : gtsam::Cal3DS2_Base {
+//  // Standard Constructors
+//  Cal3DS2();
+//  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2);
+//  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2);
+//  Cal3DS2(Vector v);
+//
+//  // Testable
+//  bool equals(const gtsam::Cal3DS2& rhs, double tol) const;
+//
+//  // Manifold
+//  size_t dim() const;
+//  static size_t Dim();
+//  gtsam::Cal3DS2 retract(Vector v) const;
+//  Vector localCoordinates(const gtsam::Cal3DS2& c) const;
+//
+//  // enabling serialization functionality
+//  void serialize() const;
+//};
+//
+//#include <gtsam/geometry/Cal3Unified.h>
+//virtual class Cal3Unified : gtsam::Cal3DS2_Base {
+//  // Standard Constructors
+//  Cal3Unified();
+//  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2);
+//  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2, double xi);
+//  Cal3Unified(Vector v);
+//
+//  // Testable
+//  bool equals(const gtsam::Cal3Unified& rhs, double tol) const;
+//
+//  // Standard Interface
+//  double xi() const;
+//  gtsam::Point2 spaceToNPlane(const gtsam::Point2& p) const;
+//  gtsam::Point2 nPlaneToSpace(const gtsam::Point2& p) const;
+//
+//  // Manifold
+//  size_t dim() const;
+//  static size_t Dim();
+//  gtsam::Cal3Unified retract(Vector v) const;
+//  Vector localCoordinates(const gtsam::Cal3Unified& c) const;
+//
+//  // enabling serialization functionality
+//  void serialize() const;
+//};
+//
+//#include <gtsam/geometry/Cal3_S2Stereo.h>
 //class Cal3_S2Stereo {
 //  // Standard Constructors
 //  Cal3_S2Stereo();
@@ -952,7 +897,7 @@ class Symbol {
 //
 //  // Action on Point3
 //  gtsam::Point2 project(const gtsam::Point3& point) const;
-//  static gtsam::Point2 project_to_camera(const gtsam::Point3& cameraPoint);
+//  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
 //
 //  // Standard Interface
 //  gtsam::Pose3 pose() const;
@@ -962,56 +907,16 @@ class Symbol {
 //  void serialize() const;
 //};
 //
-//class SimpleCamera {
-//  // Standard Constructors and Named Constructors
-//  SimpleCamera();
-//  SimpleCamera(const gtsam::Pose3& pose);
-//  SimpleCamera(const gtsam::Pose3& pose, const gtsam::Cal3_S2& K);
-//  static gtsam::SimpleCamera Level(const gtsam::Cal3_S2& K,
-//      const gtsam::Pose2& pose, double height);
-//  static gtsam::SimpleCamera Level(const gtsam::Pose2& pose, double height);
-//  static gtsam::SimpleCamera Lookat(const gtsam::Point3& eye,
-//      const gtsam::Point3& target, const gtsam::Point3& upVector,
-//      const gtsam::Cal3_S2& K);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::SimpleCamera& camera, double tol) const;
-//
-//  // Standard Interface
-//  gtsam::Pose3 pose() const;
-//  gtsam::Cal3_S2 calibration();
-//
-//  // Manifold
-//  gtsam::SimpleCamera retract(const Vector& d) const;
-//  Vector localCoordinates(const gtsam::SimpleCamera& T2) const;
-//  size_t dim() const;
-//  static size_t Dim();
-//
-//  // Transformations and measurement functions
-//  static gtsam::Point2 project_to_camera(const gtsam::Point3& cameraPoint);
-//  pair<gtsam::Point2,bool> projectSafe(const gtsam::Point3& pw) const;
-//  gtsam::Point2 project(const gtsam::Point3& point);
-//  gtsam::Point3 backproject(const gtsam::Point2& p, double depth) const;
-//  double range(const gtsam::Point3& point);
-//  double range(const gtsam::Pose3& point);
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
-//
-//template<CALIBRATION = {gtsam::Cal3DS2}>
+//template<CALIBRATION>
 //class PinholeCamera {
 //  // Standard Constructors and Named Constructors
 //  PinholeCamera();
 //  PinholeCamera(const gtsam::Pose3& pose);
-//  PinholeCamera(const gtsam::Pose3& pose, const gtsam::Cal3DS2& K);
-//  static This Level(const gtsam::Cal3DS2& K,
-//    const gtsam::Pose2& pose, double height);
+//  PinholeCamera(const gtsam::Pose3& pose, const CALIBRATION& K);
+//  static This Level(const CALIBRATION& K, const gtsam::Pose2& pose, double height);
 //  static This Level(const gtsam::Pose2& pose, double height);
-//  static This Lookat(const gtsam::Point3& eye,
-//    const gtsam::Point3& target, const gtsam::Point3& upVector,
-//    const gtsam::Cal3DS2& K);
+//  static This Lookat(const gtsam::Point3& eye, const gtsam::Point3& target,
+//      const gtsam::Point3& upVector, const CALIBRATION& K);
 //
 //  // Testable
 //  void print(string s) const;
@@ -1028,7 +933,7 @@ class Symbol {
 //  static size_t Dim();
 //
 //  // Transformations and measurement functions
-//  static gtsam::Point2 project_to_camera(const gtsam::Point3& cameraPoint);
+//  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
 //  pair<gtsam::Point2,bool> projectSafe(const gtsam::Point3& pw) const;
 //  gtsam::Point2 project(const gtsam::Point3& point);
 //  gtsam::Point3 backproject(const gtsam::Point2& p, double depth) const;
@@ -1038,6 +943,50 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
+//
+//virtual class SimpleCamera {
+//  // Standard Constructors and Named Constructors
+//  SimpleCamera();
+//  SimpleCamera(const gtsam::Pose3& pose);
+//  SimpleCamera(const gtsam::Pose3& pose, const gtsam::Cal3_S2& K);
+//  static gtsam::SimpleCamera Level(const gtsam::Cal3_S2& K, const gtsam::Pose2& pose, double height);
+//  static gtsam::SimpleCamera Level(const gtsam::Pose2& pose, double height);
+//  static gtsam::SimpleCamera Lookat(const gtsam::Point3& eye, const gtsam::Point3& target,
+//      const gtsam::Point3& upVector, const gtsam::Cal3_S2& K);
+//
+//  // Testable
+//  void print(string s) const;
+//  bool equals(const gtsam::SimpleCamera& camera, double tol) const;
+//
+//  // Standard Interface
+//  gtsam::Pose3 pose() const;
+//  gtsam::Cal3_S2 calibration() const;
+//
+//  // Manifold
+//  gtsam::SimpleCamera retract(const Vector& d) const;
+//  Vector localCoordinates(const gtsam::SimpleCamera& T2) const;
+//  size_t dim() const;
+//  static size_t Dim();
+//
+//  // Transformations and measurement functions
+//  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
+//  pair<gtsam::Point2,bool> projectSafe(const gtsam::Point3& pw) const;
+//  gtsam::Point2 project(const gtsam::Point3& point);
+//  gtsam::Point3 backproject(const gtsam::Point2& p, double depth) const;
+//  double range(const gtsam::Point3& point);
+//  double range(const gtsam::Pose3& point);
+//
+//  // enabling serialization functionality
+//  void serialize() const;
+//
+//};
+//
+//// Some typedefs for common camera types
+//// PinholeCameraCal3_S2 is the same as SimpleCamera above
+//typedef gtsam::PinholeCamera<gtsam::Cal3_S2> PinholeCameraCal3_S2;
+//typedef gtsam::PinholeCamera<gtsam::Cal3DS2> PinholeCameraCal3DS2;
+//typedef gtsam::PinholeCamera<gtsam::Cal3Unified> PinholeCameraCal3Unified;
+//typedef gtsam::PinholeCamera<gtsam::Cal3Bundler> PinholeCameraCal3Bundler;
 //
 //class StereoCamera {
 //  // Standard Constructors and Named Constructors
@@ -1051,7 +1000,7 @@ class Symbol {
 //  // Standard Interface
 //  gtsam::Pose3 pose() const;
 //  double baseline() const;
-//  gtsam::Cal3_S2Stereo* calibration() const;
+//  gtsam::Cal3_S2Stereo calibration() const;
 //
 //  // Manifold
 //  gtsam::StereoCamera retract(const Vector& d) const;
@@ -1066,6 +1015,16 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
+//
+//#include <gtsam/geometry/triangulation.h>
+//
+//// Templates appear not yet supported for free functions
+//gtsam::Point3 triangulatePoint3(const gtsam::Pose3Vector& poses,
+//    gtsam::Cal3_S2* sharedCal, const gtsam::Point2Vector& measurements,
+//    double rank_tol, bool optimize);
+//gtsam::Point3 triangulatePoint3(const gtsam::Pose3Vector& poses,
+//    gtsam::Cal3Bundler* sharedCal, const gtsam::Point2Vector& measurements,
+//    double rank_tol, bool optimize);
 //
 ////*************************************************************************
 //// Symbolic
@@ -1194,7 +1153,7 @@ class Symbol {
 //    void clear();
 //    void deleteCachedShortcuts();
 //    size_t numCachedSeparatorMarginals() const;
-//  
+//
 //  gtsam::SymbolicConditional* marginalFactor(size_t key) const;
 //  gtsam::SymbolicFactorGraph* joint(size_t key1, size_t key2) const;
 //  gtsam::SymbolicBayesNet* jointBayesNet(size_t key1, size_t key2) const;
@@ -1204,19 +1163,19 @@ class Symbol {
 ////   BayesTreeClique();
 ////   BayesTreeClique(CONDITIONAL* conditional);
 //// //  BayesTreeClique(const std::pair<typename ConditionalType::shared_ptr, typename ConditionalType::FactorType::shared_ptr>& result) : Base(result) {}
-//// 
+////
 ////   bool equals(const This& other, double tol) const;
 ////   void print(string s) const;
 ////   void printTree() const; // Default indent of ""
 ////   void printTree(string indent) const;
 ////   size_t numCachedSeparatorMarginals() const;
-//// 
+////
 ////   CONDITIONAL* conditional() const;
 ////   bool isRoot() const;
 ////   size_t treeSize() const;
 //// //  const std::list<derived_ptr>& children() const { return children_; }
 //// //  derived_ptr parent() const { return parent_.lock(); }
-//// 
+////
 ////   // FIXME: need wrapped versions graphs, BayesNet
 //// //  BayesNet<ConditionalType> shortcut(derived_ptr root, Eliminate function) const;
 //// //  FactorGraph<FactorType> marginal(derived_ptr root, Eliminate function) const;
@@ -1422,6 +1381,7 @@ class Symbol {
 //
 //#include <gtsam/linear/GaussianFactor.h>
 //virtual class GaussianFactor {
+//  gtsam::KeyVector keys() const;
 //  void print(string s) const;
 //  bool equals(const gtsam::GaussianFactor& lf, double tol) const;
 //  double error(const gtsam::VectorValues& c) const;
@@ -1469,7 +1429,7 @@ class Symbol {
 //
 //  void transposeMultiplyAdd(double alpha, const Vector& e, gtsam::VectorValues& x) const;
 //  gtsam::JacobianFactor whiten() const;
-//  
+//
 //  pair<gtsam::GaussianConditional*, gtsam::JacobianFactor*> eliminate(const gtsam::Ordering& keys) const;
 //
 //  void setModel(bool anyConstrained, const Vector& sigmas);
@@ -1546,7 +1506,7 @@ class Symbol {
 //  gtsam::GaussianFactorGraph clone() const;
 //  gtsam::GaussianFactorGraph negate() const;
 //
-//  // Optimizing and linear algebra  
+//  // Optimizing and linear algebra
 //  gtsam::VectorValues optimize() const;
 //  gtsam::VectorValues optimize(const gtsam::Ordering& ordering) const;
 //  gtsam::VectorValues optimizeGradientSearch() const;
@@ -1635,7 +1595,7 @@ class Symbol {
 //    //Constructors
 //  GaussianBayesNet();
 //  GaussianBayesNet(const gtsam::GaussianConditional* conditional);
-//  
+//
 //  // Testable
 //  void print(string s) const;
 //  bool equals(const gtsam::GaussianBayesNet& other, double tol) const;
@@ -1651,7 +1611,7 @@ class Symbol {
 //  gtsam::GaussianConditional* back() const;
 //  void push_back(gtsam::GaussianConditional* conditional);
 //  void push_back(const gtsam::GaussianBayesNet& bayesNet);
-//  
+//
 //  gtsam::VectorValues optimize() const;
 //  gtsam::VectorValues optimize(gtsam::VectorValues& solutionForMissing) const;
 //  gtsam::VectorValues optimizeGradientSearch() const;
@@ -1675,7 +1635,7 @@ class Symbol {
 //  bool empty() const;
 //  size_t numCachedSeparatorMarginals() const;
 //  void saveGraph(string s) const;
-//  
+//
 //  gtsam::VectorValues optimize() const;
 //  gtsam::VectorValues optimizeGradientSearch() const;
 //  gtsam::VectorValues gradient(const gtsam::VectorValues& x0) const;
@@ -1768,23 +1728,35 @@ class Symbol {
 //  gtsam::GaussianDensity* updateQ(gtsam::GaussianDensity* p, Matrix H,
 //      Vector z, Matrix Q);
 //};
-//
-////*************************************************************************
-//// nonlinear
-////*************************************************************************
-//
-//#include <gtsam/inference/Symbol.h>
+
+//*************************************************************************
+// nonlinear
+//*************************************************************************
+
+#include <gtsam/inference/Symbol.h>
+//TODO(Ellon): Improve wrapping of Symbol. Like it is it cannot be constructed from char,
+//             nor used as index for values.
+class Symbol {
+  Symbol(const Symbol &key);
+  Symbol(unsigned char c, size_t j);
+  Symbol(gtsam::Key key);
+  gtsam::Key key() const;
+  unsigned char chr();
+  size_t index() const;
+};
+
+// Free functions:
 //size_t symbol(char chr, size_t index);
 //char symbolChr(size_t key);
 //size_t symbolIndex(size_t key);
 //
 //// Default keyformatter
-//void printKeyList  (const gtsam::KeyList& keys);
-//void printKeyList  (const gtsam::KeyList& keys, string s);
-//void printKeyVector(const gtsam::KeyVector& keys);
-//void printKeyVector(const gtsam::KeyVector& keys, string s);
-//void printKeySet   (const gtsam::KeySet& keys);
-//void printKeySet   (const gtsam::KeySet& keys, string s);
+//void PrintKeyList  (const gtsam::KeyList& keys);
+//void PrintKeyList  (const gtsam::KeyList& keys, string s);
+//void PrintKeyVector(const gtsam::KeyVector& keys);
+//void PrintKeyVector(const gtsam::KeyVector& keys, string s);
+//void PrintKeySet   (const gtsam::KeySet& keys);
+//void PrintKeySet   (const gtsam::KeySet& keys, string s);
 //
 //#include <gtsam/inference/LabeledSymbol.h>
 //class LabeledSymbol {
@@ -1845,6 +1817,7 @@ class Symbol {
 //  void push_back(gtsam::NonlinearFactor* factor);
 //  void add(gtsam::NonlinearFactor* factor);
 //  bool exists(size_t idx) const;
+//  gtsam::KeySet keys() const;
 //
 //  // NonlinearFactorGraph
 //  double error(const gtsam::Values& values) const;
@@ -1873,14 +1846,90 @@ class Symbol {
 //  gtsam::NonlinearFactor* clone() const;
 //  // gtsam::NonlinearFactor* rekey(const gtsam::KeyVector& newKeys) const; //FIXME: Conversion from KeyVector to std::vector does not happen
 //};
-
-// virtual class NoiseModelFactor: gtsam::NonlinearFactor {
+//
+//virtual class NoiseModelFactor: gtsam::NonlinearFactor {
 //  void equals(const gtsam::NoiseModelFactor& other, double tol) const;
 //  gtsam::noiseModel::Base* get_noiseModel() const;
 //  Vector unwhitenedError(const gtsam::Values& x) const;
 //  Vector whitenedError(const gtsam::Values& x) const;
-// };
+//};
 
+#include <gtsam/nonlinear/Values.h>
+class Values {
+ Values();
+ Values(const gtsam::Values& other);
+
+ size_t size() const;
+ bool empty() const;
+ void clear();
+ size_t dim() const;
+
+ void print(string s) const;
+ bool equals(const gtsam::Values& other, double tol) const;
+
+ void insert(const gtsam::Values& values);
+ void update(const gtsam::Values& values);
+ void erase(size_t j);
+ void swap(gtsam::Values& values);
+
+ // bool exists(size_t j) const;
+ // gtsam::KeyList keys() const;
+
+ // gtsam::VectorValues zeroVectors() const;
+
+ // gtsam::Values retract(const gtsam::VectorValues& delta) const;
+ // gtsam::VectorValues localCoordinates(const gtsam::Values& cp) const;
+
+ // enabling serialization functionality
+ void serialize() const;
+
+ // New in 4.0, we have to specialize every insert/update/at to generate wrappers
+ // Instead of the old:
+ // void insert(size_t j, const gtsam::Value& value);
+ // void update(size_t j, const gtsam::Value& val);
+ // gtsam::Value at(size_t j) const;
+
+ void insert(size_t j, const gtsam::Point2& t);
+ void insert(size_t j, const gtsam::Point3& t);
+ void insert(size_t j, const gtsam::Rot2& t);
+ // void insert(size_t j, const gtsam::Pose2& t);
+ void insert(size_t j, const gtsam::Rot3& t);
+ void insert(size_t j, const gtsam::Pose3& t);
+ // void insert(size_t j, const gtsam::Cal3_S2& t);
+ // void insert(size_t j, const gtsam::Cal3DS2& t);
+ // void insert(size_t j, const gtsam::Cal3Bundler& t);
+ // void insert(size_t j, const gtsam::EssentialMatrix& t);
+ // void insert(size_t j, const gtsam::imuBias::ConstantBias& t);
+ void insert(size_t j, const Vector& t);
+ void insert(size_t j, const Matrix& t);
+
+ // Fixed size version
+ void insertFixed(size_t j, Vector t, size_t n);
+
+ void update(size_t j, const gtsam::Point2& t);
+ void update(size_t j, const gtsam::Point3& t);
+ void update(size_t j, const gtsam::Rot2& t);
+ // void update(size_t j, const gtsam::Pose2& t);
+ void update(size_t j, const gtsam::Rot3& t);
+ void update(size_t j, const gtsam::Pose3& t);
+ // void update(size_t j, const gtsam::Cal3_S2& t);
+ // void update(size_t j, const gtsam::Cal3DS2& t);
+ // void update(size_t j, const gtsam::Cal3Bundler& t);
+ // void update(size_t j, const gtsam::EssentialMatrix& t);
+ // void update(size_t j, const gtsam::imuBias::ConstantBias& t);
+ void update(size_t j, const Vector& t);
+ void update(size_t j, const Matrix& t);
+
+ // See Python TODO 2) 
+ // template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Pose2, gtsam::Rot3, gtsam::Pose3, gtsam::Cal3_S2, gtsam::Cal3DS2, gtsam::Cal3Bundler, gtsam::EssentialMatrix, gtsam::imuBias::ConstantBias, Vector, Matrix}>
+ // T at(gtsam::Key j);
+ // const gtsam::Point2 & at(gtsam::Key j);
+ // const gtsam::Point3 & at(gtsam::Key j);
+ // gtsam::Rot2 at(gtsam::Key j);
+ // gtsam::Rot3 at(gtsam::Key j);
+ // gtsam::Pose3 at(gtsam::Key j);
+
+};
 
 //// Actually a FastList<Key>
 //#include <gtsam/inference/Key.h>
@@ -1937,8 +1986,6 @@ class Symbol {
 //class KeyVector {
 //  KeyVector();
 //  KeyVector(const gtsam::KeyVector& other);
-//  KeyVector(const gtsam::KeySet& other);
-//  KeyVector(const gtsam::KeyList& other);
 //
 //  // Note: no print function
 //
@@ -2049,7 +2096,7 @@ class Symbol {
 //  void setVerbosity(string s);
 //
 //  string getLinearSolverType() const;
-//  
+//
 //  void setLinearSolverType(string solver);
 //  void setOrdering(const gtsam::Ordering& ordering);
 //  void setIterativeParams(gtsam::IterativeOptimizationParameters* params);
@@ -2268,15 +2315,12 @@ class Symbol {
 ////*************************************************************************
 //// Nonlinear factor types
 ////*************************************************************************
-//#include <gtsam/geometry/Cal3_S2.h>
-//#include <gtsam/geometry/Cal3DS2.h>
-//#include <gtsam/geometry/Cal3_S2Stereo.h>
 //#include <gtsam/geometry/SimpleCamera.h>
 //#include <gtsam/geometry/CalibratedCamera.h>
 //#include <gtsam/geometry/StereoPoint2.h>
 //
 //#include <gtsam/slam/PriorFactor.h>
-//template<T = { gtsam::Point2, gtsam::StereoPoint2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose2, gtsam::Pose3, gtsam::Cal3_S2,gtsam::CalibratedCamera, gtsam::SimpleCamera, gtsam::imuBias::ConstantBias}>
+//template<T = {Vector, gtsam::Point2, gtsam::StereoPoint2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose2, gtsam::Pose3, gtsam::Cal3_S2,gtsam::CalibratedCamera, gtsam::SimpleCamera, gtsam::imuBias::ConstantBias}>
 //virtual class PriorFactor : gtsam::NoiseModelFactor {
 //  PriorFactor(size_t key, const T& prior, const gtsam::noiseModel::Base* noiseModel);
 //  T prior() const;
@@ -2288,6 +2332,7 @@ class Symbol {
 //
 // #include <gtsam/slam/BetweenFactor.h>
 // template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose2, gtsam::Pose3, gtsam::imuBias::ConstantBias}>
+// template<T = {gtsam::Point2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose3}>
 // virtual class BetweenFactor : gtsam::NoiseModelFactor {
 //  BetweenFactor(size_t key1, size_t key2, const T& relativePose, const gtsam::noiseModel::Base* noiseModel);
 //  T measured() const;
@@ -2295,8 +2340,6 @@ class Symbol {
 //  // enabling serialization functionality
 //  void serialize() const;
 // };
-//
-//
 //
 //#include <gtsam/nonlinear/NonlinearEquality.h>
 //template<T = {gtsam::Point2, gtsam::StereoPoint2, gtsam::Point3, gtsam::Rot2, gtsam::Rot3, gtsam::Pose2, gtsam::Pose3, gtsam::Cal3_S2, gtsam::CalibratedCamera, gtsam::SimpleCamera, gtsam::imuBias::ConstantBias}>
@@ -2311,7 +2354,7 @@ class Symbol {
 //};
 //
 //
-//#include <gtsam/slam/RangeFactor.h>
+//#include <gtsam/sam/RangeFactor.h>
 //template<POSE, POINT>
 //virtual class RangeFactor : gtsam::NoiseModelFactor {
 //  RangeFactor(size_t key1, size_t key2, double measured, const gtsam::noiseModel::Base* noiseModel);
@@ -2321,20 +2364,16 @@ class Symbol {
 //typedef gtsam::RangeFactor<gtsam::Pose3, gtsam::Point3> RangeFactorPosePoint3;
 //typedef gtsam::RangeFactor<gtsam::Pose2, gtsam::Pose2> RangeFactorPose2;
 //typedef gtsam::RangeFactor<gtsam::Pose3, gtsam::Pose3> RangeFactorPose3;
-//
-//// Commented out by Frank Dec 2014: not poses!
-//// If needed, we need a RangeFactor that takes a camera, extracts the pose
-//// Should be easy with Expressions
-////typedef gtsam::RangeFactor<gtsam::CalibratedCamera, gtsam::Point3> RangeFactorCalibratedCameraPoint;
-////typedef gtsam::RangeFactor<gtsam::SimpleCamera, gtsam::Point3> RangeFactorSimpleCameraPoint;
-////typedef gtsam::RangeFactor<gtsam::CalibratedCamera, gtsam::CalibratedCamera> RangeFactorCalibratedCamera;
-////typedef gtsam::RangeFactor<gtsam::SimpleCamera, gtsam::SimpleCamera> RangeFactorSimpleCamera;
+//typedef gtsam::RangeFactor<gtsam::CalibratedCamera, gtsam::Point3> RangeFactorCalibratedCameraPoint;
+//typedef gtsam::RangeFactor<gtsam::SimpleCamera, gtsam::Point3> RangeFactorSimpleCameraPoint;
+//typedef gtsam::RangeFactor<gtsam::CalibratedCamera, gtsam::CalibratedCamera> RangeFactorCalibratedCamera;
+//typedef gtsam::RangeFactor<gtsam::SimpleCamera, gtsam::SimpleCamera> RangeFactorSimpleCamera;
 //
 //
-//#include <gtsam/slam/BearingFactor.h>
-//template<POSE, POINT, ROTATION>
+//#include <gtsam/sam/BearingFactor.h>
+//template<POSE, POINT, BEARING>
 //virtual class BearingFactor : gtsam::NoiseModelFactor {
-//  BearingFactor(size_t key1, size_t key2, const ROTATION& measured, const gtsam::noiseModel::Base* noiseModel);
+//  BearingFactor(size_t key1, size_t key2, const BEARING& measured, const gtsam::noiseModel::Base* noiseModel);
 //
 //  // enabling serialization functionality
 //  void serialize() const;
@@ -2342,19 +2381,18 @@ class Symbol {
 //
 //typedef gtsam::BearingFactor<gtsam::Pose2, gtsam::Point2, gtsam::Rot2> BearingFactor2D;
 //
-//
-//#include <gtsam/slam/BearingRangeFactor.h>
-//template<POSE, POINT, ROTATION>
+//#include <gtsam/sam/BearingRangeFactor.h>
+//template<POSE, POINT, BEARING, RANGE>
 //virtual class BearingRangeFactor : gtsam::NoiseModelFactor {
-//  BearingRangeFactor(size_t poseKey, size_t pointKey, const ROTATION& measuredBearing, double measuredRange, const gtsam::noiseModel::Base* noiseModel);
-//
-//  pair<ROTATION, double> measured() const;
+//  BearingRangeFactor(size_t poseKey, size_t pointKey,
+//      const BEARING& measuredBearing, const RANGE& measuredRange,
+//      const gtsam::noiseModel::Base* noiseModel);
 //
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
 //
-//typedef gtsam::BearingRangeFactor<gtsam::Pose2, gtsam::Point2, gtsam::Rot2> BearingRangeFactor2D;
+//typedef gtsam::BearingRangeFactor<gtsam::Pose2, gtsam::Point2, gtsam::Rot2, double> BearingRangeFactor2D;
 //
 //
 //#include <gtsam/slam/ProjectionFactor.h>
@@ -2401,24 +2439,39 @@ class Symbol {
 //  void serialize() const;
 //};
 //
+//#include <gtsam/slam/SmartProjectionFactor.h>
+//class SmartProjectionParams {
+//  SmartProjectionParams();
+//  // TODO(frank): make these work:
+//  //  void setLinearizationMode(LinearizationMode linMode);
+//  //  void setDegeneracyMode(DegeneracyMode degMode);
+//  void setRankTolerance(double rankTol);
+//  void setEnableEPI(bool enableEPI);
+//  void setLandmarkDistanceThreshold(bool landmarkDistanceThreshold);
+//  void setDynamicOutlierRejectionThreshold(bool dynOutRejectionThreshold);
+//};
+//
 //#include <gtsam/slam/SmartProjectionPoseFactor.h>
-//template<POSE, CALIBRATION>
-//virtual class SmartProjectionPoseFactor : gtsam::NonlinearFactor {
+//template<CALIBRATION>
+//virtual class SmartProjectionPoseFactor: gtsam::NonlinearFactor {
 //
-//  SmartProjectionPoseFactor(double rankTol, double linThreshold,
-//      bool manageDegeneracy, bool enableEPI, const POSE& body_P_sensor);
+//  SmartProjectionPoseFactor(const gtsam::noiseModel::Base* noise,
+//      const CALIBRATION* K);
+//  SmartProjectionPoseFactor(const gtsam::noiseModel::Base* noise,
+//      const CALIBRATION* K,
+//      const gtsam::Pose3& body_P_sensor);
+//  SmartProjectionPoseFactor(const gtsam::noiseModel::Base* noise,
+//      const CALIBRATION* K,
+//      const gtsam::Pose3& body_P_sensor,
+//      const gtsam::SmartProjectionParams& params);
 //
-//  SmartProjectionPoseFactor(double rankTol);
-//  SmartProjectionPoseFactor();
-//
-//  void add(const gtsam::Point2& measured_i, size_t poseKey_i, const gtsam::noiseModel::Base* noise_i,
-//      const CALIBRATION* K_i);
+//  void add(const gtsam::Point2& measured_i, size_t poseKey_i);
 //
 //  // enabling serialization functionality
 //  //void serialize() const;
 //};
 //
-//typedef gtsam::SmartProjectionPoseFactor<gtsam::Pose3, gtsam::Cal3_S2> SmartProjectionPose3Factor;
+//typedef gtsam::SmartProjectionPoseFactor<gtsam::Cal3_S2> SmartProjectionPose3Factor;
 //
 //
 //#include <gtsam/slam/StereoFactor.h>
@@ -2500,8 +2553,6 @@ class Symbol {
 //  gtsam::imuBias::ConstantBias between(const gtsam::imuBias::ConstantBias& b) const;
 //
 //  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
 //  gtsam::imuBias::ConstantBias retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::imuBias::ConstantBias& b) const;
 //
@@ -2520,25 +2571,24 @@ class Symbol {
 //}///\namespace imuBias
 //
 //#include <gtsam/navigation/ImuFactor.h>
-//class PoseVelocity{
-//    PoseVelocity(const gtsam::Pose3& pose, Vector velocity);
+//class PoseVelocityBias{
+//    PoseVelocityBias(const gtsam::Pose3& pose, Vector velocity, const gtsam::imuBias::ConstantBias& bias);
 //  };
-//class ImuFactorPreintegratedMeasurements {
+//class PreintegratedImuMeasurements {
 //  // Standard Constructor
-//  ImuFactorPreintegratedMeasurements(const gtsam::imuBias::ConstantBias& bias, Matrix measuredAccCovariance,Matrix measuredOmegaCovariance, Matrix integrationErrorCovariance, bool use2ndOrderIntegration);
-//  ImuFactorPreintegratedMeasurements(const gtsam::imuBias::ConstantBias& bias, Matrix measuredAccCovariance,Matrix measuredOmegaCovariance, Matrix integrationErrorCovariance);
-//  ImuFactorPreintegratedMeasurements(const gtsam::ImuFactorPreintegratedMeasurements& rhs);
+//  PreintegratedImuMeasurements(const gtsam::imuBias::ConstantBias& bias, Matrix measuredAccCovariance,Matrix measuredOmegaCovariance, Matrix integrationErrorCovariance, bool use2ndOrderIntegration);
+//  PreintegratedImuMeasurements(const gtsam::imuBias::ConstantBias& bias, Matrix measuredAccCovariance,Matrix measuredOmegaCovariance, Matrix integrationErrorCovariance);
+//  // PreintegratedImuMeasurements(const gtsam::PreintegratedImuMeasurements& rhs);
 //
 //  // Testable
 //  void print(string s) const;
-//  bool equals(const gtsam::ImuFactorPreintegratedMeasurements& expected, double tol);
+//  bool equals(const gtsam::PreintegratedImuMeasurements& expected, double tol);
 //
-//  Matrix measurementCovariance() const;
-//  Matrix deltaRij() const;
 //  double deltaTij() const;
+//  gtsam::Rot3 deltaRij() const;
 //  Vector deltaPij() const;
 //  Vector deltaVij() const;
-//  Vector biasHat() const;
+//  Vector biasHatVector() const;
 //  Matrix delPdelBiasAcc() const;
 //  Matrix delPdelBiasOmega() const;
 //  Matrix delVdelBiasAcc() const;
@@ -2546,71 +2596,26 @@ class Symbol {
 //  Matrix delRdelBiasOmega() const;
 //  Matrix preintMeasCov() const;
 //
-//
 //  // Standard Interface
 //  void integrateMeasurement(Vector measuredAcc, Vector measuredOmega, double deltaT);
-//  void integrateMeasurement(Vector measuredAcc, Vector measuredOmega, double deltaT, const gtsam::Pose3& body_P_sensor);
+//  gtsam::PoseVelocityBias predict(const gtsam::Pose3& pose_i, Vector vel_i, const gtsam::imuBias::ConstantBias& bias,
+//      Vector gravity, Vector omegaCoriolis) const;
 //};
 //
 //virtual class ImuFactor : gtsam::NonlinearFactor {
 //  ImuFactor(size_t pose_i, size_t vel_i, size_t pose_j, size_t vel_j, size_t bias,
-//      const gtsam::ImuFactorPreintegratedMeasurements& preintegratedMeasurements, Vector gravity, Vector omegaCoriolis);
+//      const gtsam::PreintegratedImuMeasurements& preintegratedMeasurements, Vector gravity, Vector omegaCoriolis);
 //  ImuFactor(size_t pose_i, size_t vel_i, size_t pose_j, size_t vel_j, size_t bias,
-//      const gtsam::ImuFactorPreintegratedMeasurements& preintegratedMeasurements, Vector gravity, Vector omegaCoriolis,
+//      const gtsam::PreintegratedImuMeasurements& preintegratedMeasurements, Vector gravity, Vector omegaCoriolis,
 //      const gtsam::Pose3& body_P_sensor);
 //  // Standard Interface
-//  gtsam::ImuFactorPreintegratedMeasurements preintegratedMeasurements() const;
-//  gtsam::PoseVelocity Predict(const gtsam::Pose3& pose_i, Vector vel_i, const gtsam::imuBias::ConstantBias& bias,
-//      const gtsam::ImuFactorPreintegratedMeasurements& preintegratedMeasurements,
-//      Vector gravity, Vector omegaCoriolis) const;
-//};
-//
-//#include <gtsam/navigation/AHRSFactor.h>
-//class AHRSFactorPreintegratedMeasurements {
-//  // Standard Constructor
-//  AHRSFactorPreintegratedMeasurements(Vector bias, Matrix measuredOmegaCovariance);
-//  AHRSFactorPreintegratedMeasurements(Vector bias, Matrix measuredOmegaCovariance);
-//  AHRSFactorPreintegratedMeasurements(const gtsam::AHRSFactorPreintegratedMeasurements& rhs);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::AHRSFactorPreintegratedMeasurements& expected, double tol);
-//
-//  // get Data
-//  Matrix measurementCovariance() const;
-//  Matrix deltaRij() const;
-//  double deltaTij() const;
-//  Vector biasHat() const;
-//
-//  // Standard Interface
-//  void integrateMeasurement(Vector measuredOmega, double deltaT);
-//  void integrateMeasurement(Vector measuredOmega, double deltaT, const gtsam::Pose3& body_P_sensor);
-//  void resetIntegration() ;
-//};
-//
-//virtual class AHRSFactor : gtsam::NonlinearFactor {
-//  AHRSFactor(size_t rot_i, size_t rot_j,size_t bias,
-//      const gtsam::AHRSFactorPreintegratedMeasurements& preintegratedMeasurements, Vector omegaCoriolis);
-//  AHRSFactor(size_t rot_i, size_t rot_j, size_t bias,
-//      const gtsam::AHRSFactorPreintegratedMeasurements& preintegratedMeasurements, Vector omegaCoriolis,
-//      const gtsam::Pose3& body_P_sensor);
-//
-//  // Standard Interface
-//  gtsam::AHRSFactorPreintegratedMeasurements preintegratedMeasurements() const;
-//  Vector evaluateError(const gtsam::Rot3& rot_i, const gtsam::Rot3& rot_j,
-//      Vector bias) const;
-//  gtsam::Rot3 predict(const gtsam::Rot3& rot_i, Vector bias,
-//      const gtsam::AHRSFactorPreintegratedMeasurements& preintegratedMeasurements,
-//      Vector omegaCoriolis) const;
+//  gtsam::PreintegratedImuMeasurements preintegratedMeasurements() const;
 //};
 //
 //#include <gtsam/navigation/CombinedImuFactor.h>
-//class PoseVelocityBias{
-//    PoseVelocityBias(const gtsam::Pose3& pose, Vector velocity, const gtsam::imuBias::ConstantBias& bias);
-//  };
-//class CombinedImuFactorPreintegratedMeasurements {
+//class PreintegratedCombinedMeasurements {
 //  // Standard Constructor
-//  CombinedImuFactorPreintegratedMeasurements(
+//  PreintegratedCombinedMeasurements(
 //      const gtsam::imuBias::ConstantBias& bias,
 //      Matrix measuredAccCovariance,
 //      Matrix measuredOmegaCovariance,
@@ -2618,7 +2623,7 @@ class Symbol {
 //      Matrix biasAccCovariance,
 //      Matrix biasOmegaCovariance,
 //      Matrix biasAccOmegaInit);
-//  CombinedImuFactorPreintegratedMeasurements(
+//  PreintegratedCombinedMeasurements(
 //      const gtsam::imuBias::ConstantBias& bias,
 //      Matrix measuredAccCovariance,
 //      Matrix measuredOmegaCovariance,
@@ -2627,39 +2632,72 @@ class Symbol {
 //      Matrix biasOmegaCovariance,
 //      Matrix biasAccOmegaInit,
 //      bool use2ndOrderIntegration);
-//  CombinedImuFactorPreintegratedMeasurements(const gtsam::CombinedImuFactorPreintegratedMeasurements& rhs);
+//  // PreintegratedCombinedMeasurements(const gtsam::PreintegratedCombinedMeasurements& rhs);
 //
 //  // Testable
 //  void print(string s) const;
-//  bool equals(const gtsam::CombinedImuFactorPreintegratedMeasurements& expected, double tol);
+//  bool equals(const gtsam::PreintegratedCombinedMeasurements& expected, double tol);
 //
-//  // Standard Interface
-//  void integrateMeasurement(Vector measuredAcc, Vector measuredOmega, double deltaT);
-//  void integrateMeasurement(Vector measuredAcc, Vector measuredOmega, double deltaT, const gtsam::Pose3& body_P_sensor);
-//
-//  Matrix measurementCovariance() const;
-//  Matrix deltaRij() const;
 //  double deltaTij() const;
+//  gtsam::Rot3 deltaRij() const;
 //  Vector deltaPij() const;
 //  Vector deltaVij() const;
-//  Vector biasHat() const;
+//  Vector biasHatVector() const;
 //  Matrix delPdelBiasAcc() const;
 //  Matrix delPdelBiasOmega() const;
 //  Matrix delVdelBiasAcc() const;
 //  Matrix delVdelBiasOmega() const;
 //  Matrix delRdelBiasOmega() const;
-//  Matrix PreintMeasCov() const;
+//  Matrix preintMeasCov() const;
+//
+//  // Standard Interface
+//  void integrateMeasurement(Vector measuredAcc, Vector measuredOmega, double deltaT);
+//  gtsam::PoseVelocityBias predict(const gtsam::Pose3& pose_i, Vector vel_i, const gtsam::imuBias::ConstantBias& bias,
+//      Vector gravity, Vector omegaCoriolis) const;
 //};
 //
 //virtual class CombinedImuFactor : gtsam::NonlinearFactor {
 //  CombinedImuFactor(size_t pose_i, size_t vel_i, size_t pose_j, size_t vel_j, size_t bias_i, size_t bias_j,
-//      const gtsam::CombinedImuFactorPreintegratedMeasurements& CombinedPreintegratedMeasurements, Vector gravity, Vector omegaCoriolis);
+//      const gtsam::PreintegratedCombinedMeasurements& CombinedPreintegratedMeasurements, Vector gravity, Vector omegaCoriolis);
+//  // Standard Interface
+//  gtsam::PreintegratedCombinedMeasurements preintegratedMeasurements() const;
+//};
+//
+//#include <gtsam/navigation/AHRSFactor.h>
+//class PreintegratedAhrsMeasurements {
+//  // Standard Constructor
+//  PreintegratedAhrsMeasurements(Vector bias, Matrix measuredOmegaCovariance);
+//  PreintegratedAhrsMeasurements(Vector bias, Matrix measuredOmegaCovariance);
+//  PreintegratedAhrsMeasurements(const gtsam::PreintegratedAhrsMeasurements& rhs);
+//
+//  // Testable
+//  void print(string s) const;
+//  bool equals(const gtsam::PreintegratedAhrsMeasurements& expected, double tol);
+//
+//  // get Data
+//  gtsam::Rot3 deltaRij() const;
+//  double deltaTij() const;
+//  Vector biasHat() const;
 //
 //  // Standard Interface
-//  gtsam::CombinedImuFactorPreintegratedMeasurements preintegratedMeasurements() const;
-//  gtsam::PoseVelocityBias Predict(const gtsam::Pose3& pose_i, Vector vel_i, const gtsam::imuBias::ConstantBias& bias_i,
-//      const gtsam::CombinedImuFactorPreintegratedMeasurements& preintegratedMeasurements,
-//      Vector gravity, Vector omegaCoriolis);
+//  void integrateMeasurement(Vector measuredOmega, double deltaT);
+//  void resetIntegration() ;
+//};
+//
+//virtual class AHRSFactor : gtsam::NonlinearFactor {
+//  AHRSFactor(size_t rot_i, size_t rot_j,size_t bias,
+//      const gtsam::PreintegratedAhrsMeasurements& preintegratedMeasurements, Vector omegaCoriolis);
+//  AHRSFactor(size_t rot_i, size_t rot_j, size_t bias,
+//      const gtsam::PreintegratedAhrsMeasurements& preintegratedMeasurements, Vector omegaCoriolis,
+//      const gtsam::Pose3& body_P_sensor);
+//
+//  // Standard Interface
+//  gtsam::PreintegratedAhrsMeasurements preintegratedMeasurements() const;
+//  Vector evaluateError(const gtsam::Rot3& rot_i, const gtsam::Rot3& rot_j,
+//      Vector bias) const;
+//  gtsam::Rot3 predict(const gtsam::Rot3& rot_i, Vector bias,
+//      const gtsam::PreintegratedAhrsMeasurements& preintegratedMeasurements,
+//      Vector omegaCoriolis) const;
 //};
 //
 //#include <gtsam/navigation/AttitudeFactor.h>
@@ -2718,5 +2756,5 @@ class Symbol {
 //  gtsam::Values localToWorld(const gtsam::Values& local, const gtsam::Pose2& base, const gtsam::KeyVector& keys);
 //
 //} //\namespace utilities
-//
+
 }
