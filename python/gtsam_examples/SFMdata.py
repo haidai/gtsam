@@ -3,7 +3,7 @@
   #  - The landmarks form a 10 meter cube
   #  - The robot rotates around the landmarks, always facing towards the cube
 
-import gtsam
+import gtsampy as gtsam
 import numpy as np
 
 def createPoints():

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import gtsam
+import gtsampy as gtsam
 import numpy as np
 
 # Create an empty nonlinear factor graph

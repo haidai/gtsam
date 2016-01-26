@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import unittest
-import gtsam
+import gtsampy as gtsam
 import numpy as np
 
 # https://docs.python.org/2/library/unittest.html

@@ -5,7 +5,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import time # for sleep()
 
-import gtsam
+import gtsampy as gtsam
 from gtsam_examples import SFMdata
 import gtsam_utils
 
