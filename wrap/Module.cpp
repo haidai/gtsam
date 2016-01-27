@@ -216,6 +216,32 @@ void Module::parseMarkup(const std::string& data) {
 } 
  
 /* ************************************************************************* */ 
+void Module::generateIncludes(FileWriter& file) const {
+
+  // collect includes
+  vector<string> all_includes(includes);
+
+  // sort and remove duplicates
+  sort(all_includes.begin(), all_includes.end());
+  vector<string>::const_iterator last_include = unique(all_includes.begin(), all_includes.end());
+  vector<string>::const_iterator it = all_includes.begin();
+  // add includes to file
+  for (; it != last_include; ++it)
+    file.oss << "#include <" << *it << ">" << endl;
+  file.oss << "\n";
+}
+
+/* ************************************************************************* */
+void Module::generateTypedefs(FileWriter& file) const {
+  // create typedef classes - we put this at the top of the wrap file so that
+  // collectors and method arguments can use these typedefs
+  for(const Class& cls: expandedClasses)
+    if(!cls.typedefName.empty())
+      file.oss << cls.getTypedef() << "\n";
+  file.oss << "\n";
+}
+
+/* ************************************************************************* */
 void Module::matlab_code(const string& toolboxPath) const {
 
   fs::create_directories(toolboxPath);
@@ -236,19 +262,12 @@ void Module::matlab_code(const string& toolboxPath) const {
     wrapperFile.oss << "#include <boost/archive/text_oarchive.hpp>\n\n";
   }
 
-  // Generate includes while avoiding redundant includes
   generateIncludes(wrapperFile);
-
-  // create typedef classes - we put this at the top of the wrap file so that
-  // collectors and method arguments can use these typedefs
-  BOOST_FOREACH(const Class& cls, expandedClasses)
-    if(!cls.typedefName.empty())
-      wrapperFile.oss << cls.getTypedef() << "\n";
-  wrapperFile.oss << "\n";
+  generateTypedefs(wrapperFile);
 
   // Generate boost.serialization export flags (needs typedefs from above)
   if (hasSerialiable) {
-    BOOST_FOREACH(const Class& cls, expandedClasses)
+    for(const Class& cls: expandedClasses)
       if(cls.isSerializable)
         wrapperFile.oss << cls.getSerializationExport() << "\n";
     wrapperFile.oss << "\n";
@@ -263,11 +282,11 @@ void Module::matlab_code(const string& toolboxPath) const {
   vector<string> functionNames; // Function names stored by index for switch
 
   // create proxy class and wrapper code
-  BOOST_FOREACH(const Class& cls, expandedClasses)
+  for(const Class& cls: expandedClasses)
     cls.matlab_proxy(toolboxPath, wrapperName, typeAttributes, wrapperFile, functionNames);
 
   // create matlab files and wrapper code for global functions
-  BOOST_FOREACH(const GlobalFunctions::value_type& p, global_functions)
+  for(const GlobalFunctions::value_type& p: global_functions)
     p.second.matlab_proxy(toolboxPath, wrapperName, typeAttributes, wrapperFile, functionNames);
 
   // finish wrapper file
@@ -276,23 +295,6 @@ void Module::matlab_code(const string& toolboxPath) const {
 
   wrapperFile.emit(true);
 }
-
-/* ************************************************************************* */ 
-void Module::generateIncludes(FileWriter& file) const {
-
-  // collect includes
-  vector<string> all_includes(includes);
-
-  // sort and remove duplicates
-  sort(all_includes.begin(), all_includes.end());
-  vector<string>::const_iterator last_include = unique(all_includes.begin(), all_includes.end());
-  vector<string>::const_iterator it = all_includes.begin();
-  // add includes to file
-  for (; it != last_include; ++it)
-    file.oss << "#include <" << *it << ">" << endl;
-  file.oss << "\n";
-}
-
 
 /* ************************************************************************* */
   void Module::finish_wrapper(FileWriter& file, const std::vector<std::string>& functionNames) const { 
@@ -471,13 +473,14 @@ void Module::python_code(const string& toolboxPath) const {
   // Add header files
 
   generateIncludes(wrapperFile);
+  generateTypedefs(wrapperFile);
 
   wrapperFile.oss << "using namespace boost::python;\n";
   wrapperFile.oss << "using namespace gtsam;\n\n";// add namespace to avoid appending gtsam::
 
   // MACROS TODO(Andrew): Move these into class specific functions
   wrapperFile.oss << "// Prototypes used to perform overloading\n";
-  BOOST_FOREACH(const Class& cls, expandedClasses){
+  for(const Class& cls: expandedClasses){
     cls.python_memberFunctionOverloads(wrapperFile);
   }
   wrapperFile.oss << "\n";
@@ -522,11 +525,11 @@ void Module::python_code(const string& toolboxPath) const {
   wrapperFile.oss << "NumpyEigenConverter<Matrix9>::register_converter();\n\n";
 
   // write out classes
-  BOOST_FOREACH(const Class& cls, expandedClasses)
+  for(const Class& cls: expandedClasses)
     cls.python_wrapper(wrapperFile);
 
   // write out global functions
-  BOOST_FOREACH(const GlobalFunctions::value_type& p, global_functions)
+  for(const GlobalFunctions::value_type& p: global_functions)
     p.second.python_wrapper(wrapperFile);
 
   // finish wrapper file

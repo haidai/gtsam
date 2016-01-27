@@ -59,10 +59,14 @@ struct Module {
   /// Throws exception on failure
   void parseMarkup(const std::string& data);
 
+  /// Generate list of include files
+  void generateIncludes(FileWriter& file) const;
+
+  /// Generate list of template typedefs
+  void generateTypedefs(FileWriter& file) const;
+
   /// MATLAB code generation:
   void matlab_code(const std::string& path) const;
-
-  void generateIncludes(FileWriter& file) const;
 
   void finish_wrapper(FileWriter& file,
       const std::vector<std::string>& functionNames) const;
