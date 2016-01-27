@@ -151,14 +151,14 @@ class gtsam::Key;
 virtual class gtsam::NoiseModelFactor;
 
 namespace gtsam {
-//
-////*************************************************************************
-//// base
-////*************************************************************************
-//
-///** gtsam namespace functions */
-//bool linear_independent(Matrix A, Matrix B, double tol);
-//
+
+//*************************************************************************
+// base
+//*************************************************************************
+
+/** gtsam namespace functions */
+bool linear_independent(Matrix A, Matrix B, double tol);
+
 //virtual class Value {
 //  // No constructors because this is an abstract class
 //
@@ -261,7 +261,7 @@ namespace gtsam {
 //  // enabling serialization functionality
 //  void serialize() const;
 //};
-//
+
 //*************************************************************************
 // geometry
 //*************************************************************************
@@ -472,10 +472,10 @@ class Rot3 {
   static gtsam::Rot3 Rz(double t);
   static gtsam::Rot3 RzRyRx(double x, double y, double z);
   static gtsam::Rot3 RzRyRx(const Vector& xyz);
-  static gtsam::Rot3 yaw(double t); // positive yaw is to right (as in aircraft heading)
-  static gtsam::Rot3 pitch(double t); // positive pitch is up (increasing aircraft altitude)
-  static gtsam::Rot3 roll(double t); // positive roll is to right (increasing yaw in aircraft)
-  static gtsam::Rot3 ypr(double y, double p, double r);
+  static gtsam::Rot3 Yaw(double t); // positive yaw is to right (as in aircraft heading)
+  static gtsam::Rot3 Pitch(double t); // positive pitch is up (increasing aircraft altitude)
+  static gtsam::Rot3 Roll(double t); // positive roll is to right (increasing yaw in aircraft)
+  static gtsam::Rot3 Ypr(double y, double p, double r);
   static gtsam::Rot3 AxisAngle(const Vector3& axis, double angle);
   static gtsam::Rot3 AxisAngle(const gtsam::Point3& axis, double angle);
   // static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
