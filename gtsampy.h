@@ -298,9 +298,10 @@ class Point2 {
   double y() const;
   Vector vector() const;
 
-//  double dist(const gtsam::Point2& p2) const;
-//  double norm() const;
-//
+  // Need Jacobians:
+  //  double dist(const gtsam::Point2& p2) const;
+  //  double norm() const;
+
 //  // enabling serialization functionality
 //  void serialize() const;
 
@@ -309,7 +310,7 @@ class Point2 {
   ostream operator<<(ostream& os, const Point2 &p);
 };
 
-//// std::vector<gtsam::Point2>
+//// std::vector<gtsam::Point2> typedefs don't work well with python
 //class Point2Vector
 //{
 //  // Constructors
@@ -334,39 +335,40 @@ class Point2 {
 //  void push_back(const gtsam::Point2& x);
 //  void pop_back();
 //};
-//
-//class StereoPoint2 {
-//  // Standard Constructors
-//  StereoPoint2();
-//  StereoPoint2(double uL, double uR, double v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::StereoPoint2& point, double tol) const;
-//
-//  // Group
-//  static gtsam::StereoPoint2 identity();
-//  gtsam::StereoPoint2 inverse() const;
-//  gtsam::StereoPoint2 compose(const gtsam::StereoPoint2& p2) const;
-//  gtsam::StereoPoint2 between(const gtsam::StereoPoint2& p2) const;
-//
-//  // Manifold
-//  gtsam::StereoPoint2 retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::StereoPoint2& p) const;
-//
-//  // Lie Group
-//  static gtsam::StereoPoint2 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::StereoPoint2& p);
-//
-//  // Standard Interface
-//  Vector vector() const;
-//  double uL() const;
-//  double uR() const;
-//  double v() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+
+#include <gtsam/geometry/StereoPoint2.h>
+class StereoPoint2 {
+  // Standard Constructors
+  StereoPoint2();
+  StereoPoint2(double uL, double uR, double v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::StereoPoint2& point, double tol) const;
+
+  // Group
+  static gtsam::StereoPoint2 identity();
+  gtsam::StereoPoint2 inverse() const;
+  gtsam::StereoPoint2 compose(const gtsam::StereoPoint2& p2) const;
+  gtsam::StereoPoint2 between(const gtsam::StereoPoint2& p2) const;
+
+  // Manifold
+  gtsam::StereoPoint2 retract(Vector v) const;
+  Vector localCoordinates(const gtsam::StereoPoint2& p) const;
+
+  // Lie Group
+  static gtsam::StereoPoint2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::StereoPoint2& p);
+
+  // Standard Interface
+  Vector vector() const;
+  double uL() const;
+  double uR() const;
+  double v() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
 
 #include <gtsam/geometry/Point3.h>
 class Point3 {
@@ -540,53 +542,56 @@ class Rot3 {
   gtsam::Rot3 slerp(double t, const gtsam::Rot3& other) const;
 };
 
-//class Pose2 {
-//  // Standard Constructor
-//  Pose2();
-//  Pose2(const gtsam::Pose2& pose);
-//  Pose2(double x, double y, double theta);
-//  Pose2(double theta, const gtsam::Point2& t);
-//  Pose2(const gtsam::Rot2& r, const gtsam::Point2& t);
-//  Pose2(Vector v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Pose2& pose, double tol) const;
-//
-//  // Group
-//  static gtsam::Pose2 identity();
+#include <gtsam/geometry/Pose2.h>
+class Pose2 {
+  // Standard Constructor
+  Pose2();
+  Pose2(const gtsam::Pose2& pose);
+  Pose2(double x, double y, double theta);
+  Pose2(double theta, const gtsam::Point2& t);
+  Pose2(const gtsam::Rot2& r, const gtsam::Point2& t);
+  Pose2(Vector v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Pose2& pose, double tol) const;
+
+  // Group
+  static gtsam::Pose2 identity();
 //  gtsam::Pose2 inverse() const;
 //  gtsam::Pose2 compose(const gtsam::Pose2& p2) const;
 //  gtsam::Pose2 between(const gtsam::Pose2& p2) const;
-//
-//  // Manifold
+
+  // Manifold
 //  gtsam::Pose2 retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::Pose2& p) const;
-//
-//  // Lie Group
-//  static gtsam::Pose2 Expmap(Vector v);
-//  static Vector Logmap(const gtsam::Pose2& p);
-//  Matrix AdjointMap() const;
-//  Vector Adjoint(const Vector& xi) const;
-//  static Matrix wedge(double vx, double vy, double w);
-//
-//  // Group Actions on Point2
-//  gtsam::Point2 transform_from(const gtsam::Point2& p) const;
-//  gtsam::Point2 transform_to(const gtsam::Point2& p) const;
-//
-//  // Standard Interface
-//  double x() const;
-//  double y() const;
-//  double theta() const;
+
+  // Lie Group
+  static gtsam::Pose2 Expmap(Vector v);
+  static Vector Logmap(const gtsam::Pose2& p);
+  Matrix AdjointMap() const;
+  Vector Adjoint(const Vector& xi) const;
+  static Matrix wedge(double vx, double vy, double w);
+
+  // Group Actions on Point2
+  gtsam::Point2 transform_from(const gtsam::Point2& p) const;
+  gtsam::Point2 transform_to(const gtsam::Point2& p) const;
+
+  // Standard Interface
+  double x() const;
+  double y() const;
+  double theta() const;
 //  gtsam::Rot2 bearing(const gtsam::Point2& point) const;
 //  double range(const gtsam::Point2& point) const;
+// TODO(frank): need return_value_policy for const refs !
 //  gtsam::Point2 translation() const;
 //  gtsam::Rot2 rotation() const;
-//  Matrix matrix() const;
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
+  Matrix matrix() const;
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
 #include <gtsam/geometry/Pose3.h>
 class Pose3 {
   // Standard Constructors
@@ -690,11 +695,11 @@ class Unit3 {
  // enum    { dimension = 2 }
 };
 
-//#include <gtsam/geometry/EssentialMatrix.h>
-//class EssentialMatrix {
-//  // Standard Constructors
-//  EssentialMatrix(const gtsam::Rot3& aRb, const gtsam::Unit3& aTb);
-//
+#include <gtsam/geometry/EssentialMatrix.h>
+class EssentialMatrix {
+  // Standard Constructors
+  EssentialMatrix(const gtsam::Rot3& aRb, const gtsam::Unit3& aTb);
+
 //  // Testable
 //  void print(string s) const;
 //  bool equals(const gtsam::EssentialMatrix& pose, double tol) const;
@@ -710,22 +715,23 @@ class Unit3 {
 //  gtsam::Unit3 direction() const;
 //  Matrix matrix() const;
 //  double error(Vector vA, Vector vB);
-//};
-//
-//class Cal3_S2 {
-//  // Standard Constructors
-//  Cal3_S2();
-//  Cal3_S2(double fx, double fy, double s, double u0, double v0);
-//  Cal3_S2(Vector v);
-//  Cal3_S2(double fov, int w, int h);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Cal3_S2& rhs, double tol) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
+};
+
+#include <gtsam/geometry/Cal3_S2.h>
+class Cal3_S2 {
+  // Standard Constructors
+  Cal3_S2();
+  Cal3_S2(double fx, double fy, double s, double u0, double v0);
+  Cal3_S2(Vector v);
+  Cal3_S2(double fov, int w, int h);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Cal3_S2& rhs, double tol) const;
+
+  // Manifold
+  static size_t Dim();
+  size_t dim() const;
 //  gtsam::Cal3_S2 retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::Cal3_S2& c) const;
 //
@@ -746,25 +752,25 @@ class Unit3 {
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
-//#include <gtsam/geometry/Cal3DS2_Base.h>
-//virtual class Cal3DS2_Base {
-//  // Standard Constructors
-//  Cal3DS2_Base();
-//
-//  // Testable
-//  void print(string s) const;
-//
-//  // Standard Interface
-//  double fx() const;
-//  double fy() const;
-//  double skew() const;
-//  double px() const;
-//  double py() const;
-//  double k1() const;
-//  double k2() const;
-//
+};
+
+#include <gtsam/geometry/Cal3DS2_Base.h>
+virtual class Cal3DS2_Base {
+  // Standard Constructors
+  Cal3DS2_Base();
+
+  // Testable
+  void print(string s) const;
+
+  // Standard Interface
+  double fx() const;
+  double fy() const;
+  double skew() const;
+  double px() const;
+  double py() const;
+  double k1() const;
+  double k2() const;
+
 //  // Action on Point2
 //  gtsam::Point2 uncalibrate(const gtsam::Point2& p) const;
 //  gtsam::Point2 calibrate(const gtsam::Point2& p, double tol) const;
@@ -772,167 +778,169 @@ class Unit3 {
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
-//#include <gtsam/geometry/Cal3DS2.h>
-//virtual class Cal3DS2 : gtsam::Cal3DS2_Base {
-//  // Standard Constructors
-//  Cal3DS2();
-//  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2);
-//  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2);
-//  Cal3DS2(Vector v);
-//
-//  // Testable
-//  bool equals(const gtsam::Cal3DS2& rhs, double tol) const;
-//
-//  // Manifold
-//  size_t dim() const;
-//  static size_t Dim();
+};
+
+#include <gtsam/geometry/Cal3DS2.h>
+virtual class Cal3DS2 : gtsam::Cal3DS2_Base {
+  // Standard Constructors
+  Cal3DS2();
+  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2);
+  Cal3DS2(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2);
+  Cal3DS2(Vector v);
+
+  // Testable
+  bool equals(const gtsam::Cal3DS2& rhs, double tol) const;
+
+  // Manifold
+  size_t dim() const;
+  static size_t Dim();
 //  gtsam::Cal3DS2 retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::Cal3DS2& c) const;
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
-//#include <gtsam/geometry/Cal3Unified.h>
-//virtual class Cal3Unified : gtsam::Cal3DS2_Base {
-//  // Standard Constructors
-//  Cal3Unified();
-//  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2);
-//  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2, double xi);
-//  Cal3Unified(Vector v);
-//
-//  // Testable
-//  bool equals(const gtsam::Cal3Unified& rhs, double tol) const;
-//
+};
+
+#include <gtsam/geometry/Cal3Unified.h>
+virtual class Cal3Unified : gtsam::Cal3DS2_Base {
+  // Standard Constructors
+  Cal3Unified();
+  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2);
+  Cal3Unified(double fx, double fy, double s, double u0, double v0, double k1, double k2, double p1, double p2, double xi);
+  Cal3Unified(Vector v);
+
+  // Testable
+  bool equals(const gtsam::Cal3Unified& rhs, double tol) const;
+
 //  // Standard Interface
 //  double xi() const;
 //  gtsam::Point2 spaceToNPlane(const gtsam::Point2& p) const;
 //  gtsam::Point2 nPlaneToSpace(const gtsam::Point2& p) const;
-//
-//  // Manifold
-//  size_t dim() const;
-//  static size_t Dim();
+
+  // Manifold
+  size_t dim() const;
+  static size_t Dim();
 //  gtsam::Cal3Unified retract(Vector v) const;
 //  Vector localCoordinates(const gtsam::Cal3Unified& c) const;
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
-//#include <gtsam/geometry/Cal3_S2Stereo.h>
-//class Cal3_S2Stereo {
-//  // Standard Constructors
-//  Cal3_S2Stereo();
-//  Cal3_S2Stereo(double fx, double fy, double s, double u0, double v0, double b);
-//  Cal3_S2Stereo(Vector v);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Cal3_S2Stereo& K, double tol) const;
-//
-//  // Standard Interface
-//  double fx() const;
-//  double fy() const;
-//  double skew() const;
-//  double px() const;
-//  double py() const;
-//  gtsam::Point2 principalPoint() const;
-//  double baseline() const;
-//};
-//
-//#include <gtsam/geometry/Cal3Bundler.h>
-//class Cal3Bundler {
-//  // Standard Constructors
-//  Cal3Bundler();
-//  Cal3Bundler(double fx, double k1, double k2, double u0, double v0);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::Cal3Bundler& rhs, double tol) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::Cal3Bundler retract(Vector v) const;
-//  Vector localCoordinates(const gtsam::Cal3Bundler& c) const;
-//
-//  // Action on Point2
-//  gtsam::Point2 calibrate(const gtsam::Point2& p, double tol) const;
-//  gtsam::Point2 calibrate(const gtsam::Point2& p) const;
-//  gtsam::Point2 uncalibrate(const gtsam::Point2& p) const;
-//
-//  // Standard Interface
-//  double fx() const;
-//  double fy() const;
-//  double k1() const;
-//  double k2() const;
-//  double u0() const;
-//  double v0() const;
-//  Vector vector() const;
-//  Vector k() const;
-//  //Matrix K() const; //FIXME: Uppercase
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
-//
-//class CalibratedCamera {
-//  // Standard Constructors and Named Constructors
-//  CalibratedCamera();
-//  CalibratedCamera(const gtsam::Pose3& pose);
-//  CalibratedCamera(const Vector& v);
-//  static gtsam::CalibratedCamera Level(const gtsam::Pose2& pose2, double height);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::CalibratedCamera& camera, double tol) const;
-//
-//  // Manifold
-//  static size_t Dim();
-//  size_t dim() const;
-//  gtsam::CalibratedCamera retract(const Vector& d) const;
-//  Vector localCoordinates(const gtsam::CalibratedCamera& T2) const;
-//
-//  // Action on Point3
+};
+
+#include <gtsam/geometry/Cal3_S2Stereo.h>
+class Cal3_S2Stereo {
+  // Standard Constructors
+  Cal3_S2Stereo();
+  Cal3_S2Stereo(double fx, double fy, double s, double u0, double v0, double b);
+  Cal3_S2Stereo(Vector v);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Cal3_S2Stereo& K, double tol) const;
+
+  // Standard Interface
+  double fx() const;
+  double fy() const;
+  double skew() const;
+  double px() const;
+  double py() const;
+  gtsam::Point2 principalPoint() const;
+  double baseline() const;
+};
+
+#include <gtsam/geometry/Cal3Bundler.h>
+class Cal3Bundler {
+  // Standard Constructors
+  Cal3Bundler();
+  Cal3Bundler(double fx, double k1, double k2, double u0, double v0);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::Cal3Bundler& rhs, double tol) const;
+
+  // Manifold
+  static size_t Dim();
+  size_t dim() const;
+  gtsam::Cal3Bundler retract(Vector v) const;
+  Vector localCoordinates(const gtsam::Cal3Bundler& c) const;
+
+  // Action on Point2
+  gtsam::Point2 calibrate(const gtsam::Point2& p, double tol) const;
+  gtsam::Point2 calibrate(const gtsam::Point2& p) const;
+  gtsam::Point2 uncalibrate(const gtsam::Point2& p) const;
+
+  // Standard Interface
+  double fx() const;
+  double fy() const;
+  double k1() const;
+  double k2() const;
+  double u0() const;
+  double v0() const;
+  Vector vector() const;
+  Vector k() const;
+  //Matrix K() const; //FIXME: Uppercase
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
+#include <gtsam/geometry/CalibratedCamera.h>
+class CalibratedCamera {
+  // Standard Constructors and Named Constructors
+  CalibratedCamera();
+  CalibratedCamera(const gtsam::Pose3& pose);
+  CalibratedCamera(const Vector& v);
+  static gtsam::CalibratedCamera Level(const gtsam::Pose2& pose2, double height);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::CalibratedCamera& camera, double tol) const;
+
+  // Manifold
+  static size_t Dim();
+  size_t dim() const;
+  gtsam::CalibratedCamera retract(const Vector& d) const;
+  Vector localCoordinates(const gtsam::CalibratedCamera& T2) const;
+
+  // Action on Point3
 //  gtsam::Point2 project(const gtsam::Point3& point) const;
 //  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
-//
-//  // Standard Interface
+
+  // Standard Interface
 //  gtsam::Pose3 pose() const;
 //  double range(const gtsam::Point3& p) const; // TODO: Other overloaded range methods
-//
-//  // enabling serialization functionality
-//  void serialize() const;
-//};
-//
-//template<CALIBRATION>
-//class PinholeCamera {
-//  // Standard Constructors and Named Constructors
-//  PinholeCamera();
-//  PinholeCamera(const gtsam::Pose3& pose);
-//  PinholeCamera(const gtsam::Pose3& pose, const CALIBRATION& K);
+
+  // enabling serialization functionality
+  void serialize() const;
+};
+
+#include <gtsam/geometry/PinholeCamera.h>
+template<CALIBRATION>
+class PinholeCamera {
+  // Standard Constructors and Named Constructors
+  PinholeCamera();
+  PinholeCamera(const gtsam::Pose3& pose);
+  PinholeCamera(const gtsam::Pose3& pose, const CALIBRATION& K);
 //  static This Level(const CALIBRATION& K, const gtsam::Pose2& pose, double height);
 //  static This Level(const gtsam::Pose2& pose, double height);
 //  static This Lookat(const gtsam::Point3& eye, const gtsam::Point3& target,
 //      const gtsam::Point3& upVector, const CALIBRATION& K);
 //
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const This& camera, double tol) const;
-//
-//  // Standard Interface
+  // Testable
+  void print(string s) const;
+  bool equals(const This& camera, double tol) const;
+
+  // Standard Interface
 //  gtsam::Pose3 pose() const;
 //  CALIBRATION calibration() const;
-//
-//  // Manifold
+
+  // Manifold
 //  This retract(const Vector& d) const;
 //  Vector localCoordinates(const This& T2) const;
-//  size_t dim() const;
-//  static size_t Dim();
-//
-//  // Transformations and measurement functions
+  size_t dim() const;
+  static size_t Dim();
+
+  // Transformations and measurement functions
 //  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
 //  pair<gtsam::Point2,bool> projectSafe(const gtsam::Point3& pw) const;
 //  gtsam::Point2 project(const gtsam::Point3& point);
@@ -942,80 +950,81 @@ class Unit3 {
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
-//virtual class SimpleCamera {
-//  // Standard Constructors and Named Constructors
-//  SimpleCamera();
-//  SimpleCamera(const gtsam::Pose3& pose);
-//  SimpleCamera(const gtsam::Pose3& pose, const gtsam::Cal3_S2& K);
-//  static gtsam::SimpleCamera Level(const gtsam::Cal3_S2& K, const gtsam::Pose2& pose, double height);
-//  static gtsam::SimpleCamera Level(const gtsam::Pose2& pose, double height);
-//  static gtsam::SimpleCamera Lookat(const gtsam::Point3& eye, const gtsam::Point3& target,
-//      const gtsam::Point3& upVector, const gtsam::Cal3_S2& K);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::SimpleCamera& camera, double tol) const;
-//
+};
+
+#include <gtsam/geometry/SimpleCamera.h>
+virtual class SimpleCamera {
+  // Standard Constructors and Named Constructors
+  SimpleCamera();
+  SimpleCamera(const gtsam::Pose3& pose);
+  SimpleCamera(const gtsam::Pose3& pose, const gtsam::Cal3_S2& K);
+  static gtsam::SimpleCamera Level(const gtsam::Cal3_S2& K, const gtsam::Pose2& pose, double height);
+  static gtsam::SimpleCamera Level(const gtsam::Pose2& pose, double height);
+  static gtsam::SimpleCamera Lookat(const gtsam::Point3& eye, const gtsam::Point3& target,
+      const gtsam::Point3& upVector, const gtsam::Cal3_S2& K);
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::SimpleCamera& camera, double tol) const;
+
 //  // Standard Interface
 //  gtsam::Pose3 pose() const;
 //  gtsam::Cal3_S2 calibration() const;
-//
-//  // Manifold
+
+  // Manifold
 //  gtsam::SimpleCamera retract(const Vector& d) const;
 //  Vector localCoordinates(const gtsam::SimpleCamera& T2) const;
-//  size_t dim() const;
-//  static size_t Dim();
-//
-//  // Transformations and measurement functions
+  size_t dim() const;
+  static size_t Dim();
+
+  // Transformations and measurement functions
 //  static gtsam::Point2 Project(const gtsam::Point3& cameraPoint);
 //  pair<gtsam::Point2,bool> projectSafe(const gtsam::Point3& pw) const;
 //  gtsam::Point2 project(const gtsam::Point3& point);
-//  gtsam::Point3 backproject(const gtsam::Point2& p, double depth) const;
+  gtsam::Point3 backproject(const gtsam::Point2& p, double depth) const;
 //  double range(const gtsam::Point3& point);
 //  double range(const gtsam::Pose3& point);
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//
-//};
-//
-//// Some typedefs for common camera types
-//// PinholeCameraCal3_S2 is the same as SimpleCamera above
-//typedef gtsam::PinholeCamera<gtsam::Cal3_S2> PinholeCameraCal3_S2;
-//typedef gtsam::PinholeCamera<gtsam::Cal3DS2> PinholeCameraCal3DS2;
-//typedef gtsam::PinholeCamera<gtsam::Cal3Unified> PinholeCameraCal3Unified;
-//typedef gtsam::PinholeCamera<gtsam::Cal3Bundler> PinholeCameraCal3Bundler;
-//
-//class StereoCamera {
-//  // Standard Constructors and Named Constructors
-//  StereoCamera();
+};
+
+// Some typedefs for common camera types
+// PinholeCameraCal3_S2 is the same as SimpleCamera above
+typedef gtsam::PinholeCamera<gtsam::Cal3_S2> PinholeCameraCal3_S2;
+typedef gtsam::PinholeCamera<gtsam::Cal3DS2> PinholeCameraCal3DS2;
+typedef gtsam::PinholeCamera<gtsam::Cal3Unified> PinholeCameraCal3Unified;
+typedef gtsam::PinholeCamera<gtsam::Cal3Bundler> PinholeCameraCal3Bundler;
+
+#include <gtsam/geometry/StereoCamera.h>
+class StereoCamera {
+  // Standard Constructors and Named Constructors
+  StereoCamera();
 //  StereoCamera(const gtsam::Pose3& pose, const gtsam::Cal3_S2Stereo* K);
-//
-//  // Testable
-//  void print(string s) const;
-//  bool equals(const gtsam::StereoCamera& camera, double tol) const;
-//
-//  // Standard Interface
+
+  // Testable
+  void print(string s) const;
+  bool equals(const gtsam::StereoCamera& camera, double tol) const;
+
+  // Standard Interface
 //  gtsam::Pose3 pose() const;
 //  double baseline() const;
 //  gtsam::Cal3_S2Stereo calibration() const;
-//
-//  // Manifold
+
+  // Manifold
 //  gtsam::StereoCamera retract(const Vector& d) const;
 //  Vector localCoordinates(const gtsam::StereoCamera& T2) const;
-//  size_t dim() const;
-//  static size_t Dim();
-//
-//  // Transformations and measurement functions
+  size_t dim() const;
+  static size_t Dim();
+
+  // Transformations and measurement functions
 //  gtsam::StereoPoint2 project(const gtsam::Point3& point);
 //  gtsam::Point3 backproject(const gtsam::StereoPoint2& p) const;
 //
 //  // enabling serialization functionality
 //  void serialize() const;
-//};
-//
+};
+
 //#include <gtsam/geometry/triangulation.h>
 //
 //// Templates appear not yet supported for free functions
