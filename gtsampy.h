@@ -478,8 +478,8 @@ class Rot3 {
   static gtsam::Rot3 Ypr(double y, double p, double r);
   static gtsam::Rot3 AxisAngle(const Vector3& axis, double angle);
   static gtsam::Rot3 AxisAngle(const gtsam::Point3& axis, double angle);
-  // static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
-  static gtsam::Rot3 quaternion(double w, double x, double y, double z);
+//  static gtsam::Rot3 AxisAngle(const Unit3& axis, double angle);
+  static gtsam::Rot3 Quaternion(double w, double x, double y, double z);
   static gtsam::Rot3 Rodrigues(const Vector3& vls);
   static gtsam::Rot3 Rodrigues(double wx, double wy, double wz);
 
@@ -496,8 +496,8 @@ class Rot3 {
 
   // Manifold
   // enum   CoordinatesMode { EXPMAP, CAYLEY }
-  gtsam::Rot3 retractCayley(Vector v) const;
-  Vector localCayley(const gtsam::Rot3& p) const;
+  // gtsam::Rot3 retractCayley(Vector v) const;
+  // Vector localCayley(const gtsam::Rot3& p) const;
 
   // Lie Group
   Matrix AdjointMap() const;

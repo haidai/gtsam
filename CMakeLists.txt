@@ -84,6 +84,10 @@ if(GTSAM_INSTALL_MATLAB_TOOLBOX AND GTSAM_BUILD_STATIC_LIBRARY)
 	message(FATAL_ERROR "GTSAM_INSTALL_MATLAB_TOOLBOX and GTSAM_BUILD_STATIC_LIBRARY are both enabled.  The MATLAB wrapper cannot be compiled with a static GTSAM library because mex modules are themselves shared libraries.  If you want a self-contained mex module, enable GTSAM_MEX_BUILD_STATIC_MODULE instead of GTSAM_BUILD_STATIC_LIBRARY.")
 endif()
 
+if((GTSAM_BUILD_PYTHON OR GTSAM_INSTALL_MATLAB_TOOLBOX) AND GTSAM_ALLOW_DEPRECATED_SINCE_V4)
+    message(FATAL_ERROR "Since GTSAM 4 the MATLAB/python wrappers cannot be generated if deprecated methods/functions are allowed. Please disable GTSAM_ALLOW_DEPRECATED_SINCE_V4 to build the wrappers.")
+endif()
+
 # Flags for choosing default packaging tools
 set(CPACK_SOURCE_GENERATOR "TGZ" CACHE STRING "CPack Default Source Generator")
 set(CPACK_GENERATOR        "TGZ" CACHE STRING "CPack Default Binary Generator")
