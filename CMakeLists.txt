@@ -225,7 +225,7 @@ option(GTSAM_USE_SYSTEM_EIGEN "Find and use system-installed Eigen. If 'off', us
 # Switch for using system Eigen or GTSAM-bundled Eigen
 if(GTSAM_USE_SYSTEM_EIGEN)
 	find_package(Eigen3 REQUIRED)
-	include_directories(AFTER "${EIGEN3_INCLUDE_DIR}")
+	include_directories(AFTER SYSTEM "${EIGEN3_INCLUDE_DIR}")
 
 	# Use generic Eigen include paths e.g. <Eigen/Core>
     set(GTSAM_EIGEN_INCLUDE_PREFIX "${EIGEN3_INCLUDE_DIR}")
@@ -243,7 +243,7 @@ else()
 	endif()
 	# Add the bundled version of eigen to the include path so that it can still be included
 	# with  #include <Eigen/Core>
-	include_directories(BEFORE "gtsam/3rdparty/Eigen/")
+	include_directories(BEFORE SYSTEM "gtsam/3rdparty/Eigen/")
 
 	# set full path to be used by external projects
 	# this will be added to GTSAM_INCLUDE_DIR by gtsam_extra.cmake.in
