@@ -36,11 +36,11 @@
   #endif
   #pragma clang diagnostic ignored "-Wconstant-logical-operand"
 #elif defined __GNUC__
-#ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
-#pragma GCC diagnostic push
-#endif
-#pragma GCC diagnostic ignored "-Wignored-attributes"
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+  #ifndef EIGEN_PERMANENTLY_DISABLE_STUPID_WARNINGS
+    #pragma GCC diagnostic push
+  #endif
+  #pragma GCC diagnostic ignored "-Wignored-attributes"
+  #pragma GCC diagnostic ignored "-Wdeprecated-declarations"
 #endif
 
 #endif // not EIGEN_WARNINGS_DISABLED
